@@ -19,6 +19,9 @@ struct Calendar{U} <: ExposurePeriod
     cal_period::U
 end
 
+# make ExposurePeriod broadcastable so that you can broadcast 
+Base.Broadcast.broadcastable(ic::ExposurePeriod) = Ref(ic) 
+
 function next_exposure(i, t, period)
 	
 	return (from = i, to = min(i + period, t))

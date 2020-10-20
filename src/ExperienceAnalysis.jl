@@ -22,42 +22,55 @@ end
 # make ExposurePeriod broadcastable so that you can broadcast 
 Base.Broadcast.broadcastable(ic::ExposurePeriod) = Ref(ic) 
 
-function next_exposure(i, t, period)
+function next_exposure(from, to, period)
 	
-	return (from = i, to = min(i + period, t))
+	return (from = from, to = min(from + period, to))
 		
 	
 end
 
+"""
+    exposure(ExposurePeriod,from,to,continued_exposure=false)
 
-function exposure(i, t, p::Policy{T}) where {T}
+Return an array of name tuples `(from=Date,to=Date)` of the exposure periods for the given `ExposurePeriod`s. 
+
+If `continue` is `true`, then the final `to` date will continue through the end of the final ExposurePeriod. This is useful if you want the decrement of interest is the cause of termination, because then you want a full exposure.
+
+
+"""
+function exposure(p::Policy{T},from, to, continued_exposure=false) where {T}
     period = p.pol_period
-	result = [next_exposure(i, t, period)]
-	while result[end].to < t
+	result = [next_exposure(from, to, period)]
+	while result[end].to < to
 		push!(
             result,
-            next_exposure(result[end].to, t, period)
+            next_exposure(result[end].to, to, period)
             )
-	end
+    end
+    
+    if continued_exposure && (result[end].to == to)
+        result[end] = (from=result[end].from,to=result[end].from + period)
+    end
+
 	return result
 end
     
-function exposure(i, t, p::PolicyCalendar{T,U}) where {T,U}
+function exposure(p::PolicyCalendar{T,U},from, to, continued_exposure=false) where {T,U}
 
     period = min(p.cal_period, p.pol_period)
     
-    next_pol_per = i + p.pol_period
-    next_cal_per = ceil(i, p.cal_period)
+    next_pol_per = from + p.pol_period
+    next_cal_per = ceil(from, p.cal_period)
 
-    next_terminus = min(min(next_pol_per, next_cal_per), t)
+    next_terminus = min(min(next_pol_per, next_cal_per), to)
 
-    result = [next_exposure(i, next_terminus, period)]
-    while result[end].to < t
+    result = [next_exposure(from, next_terminus, period)]
+    while result[end].to < to
         while result[end].to < next_terminus
             push!(
                 result,
                 next_exposure(result[end].to, next_terminus, period)
-                )
+                )                                                                                                                                                          
         end
         if result[end].to >= next_pol_per
             next_pol_per = next_pol_per + p.pol_period
@@ -66,20 +79,25 @@ function exposure(i, t, p::PolicyCalendar{T,U}) where {T,U}
             next_cal_per = ceil(next_cal_per + p.cal_period, p.cal_period)
         end
 
-        next_terminus = min(min(next_pol_per, next_cal_per), t)
-	end
+        next_terminus = min(min(next_pol_per, next_cal_per), to)
+    end
+    
+    if continued_exposure && (result[end].to == to)
+        result[end] = (from=result[end].from,to=min(next_pol_per, next_cal_per))
+    end
+
 	return result
 end
 
-function exposure(i, t, p::Calendar{U}) where {U}
+function exposure(p::Calendar{U},from, to,continued_exposure=false) where {U}
     period = p.cal_period
     
-    next_cal_per = ceil(i, p.cal_period)
+    next_cal_per = ceil(from, p.cal_period)
 
-    next_terminus = min(next_cal_per, t)
+    next_terminus = min(next_cal_per, to)
 
-    result = [next_exposure(i, next_terminus, period)]
-    while result[end].to < t
+    result = [next_exposure(from, next_terminus, period)]
+    while result[end].to < to
         while result[end].to < next_terminus
             push!(
                 result,
@@ -90,8 +108,13 @@ function exposure(i, t, p::Calendar{U}) where {U}
             next_cal_per = ceil(next_cal_per + p.cal_period, p.cal_period)
         end
 
-        next_terminus = min(next_cal_per, t)
-	end
+        next_terminus = min(next_cal_per, to)
+    end
+    
+    if continued_exposure && (result[end].to == to)
+        result[end] = (from=result[end].from,to=result[end].from + period)
+    end
+
 	return result
 end
 

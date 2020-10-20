@@ -34,7 +34,24 @@ end
 
 Return an array of name tuples `(from=Date,to=Date)` of the exposure periods for the given `ExposurePeriod`s. 
 
-If `continue` is `true`, then the final `to` date will continue through the end of the final ExposurePeriod. This is useful if you want the decrement of interest is the cause of termination, because then you want a full exposure.
+If `continued_exposure` is `true`, then the final `to` date will continue through the end of the final ExposurePeriod. This is useful if you want the decrement of interest is the cause of termination, because then you want a full exposure.
+
+
+# Example
+
+```julia
+julia> using ExperienceAnalysis,Dates
+
+julia> issue = Date(2016, 7, 4)
+julia> termination = Date(2020, 1, 17)
+julia> basis = ExperienceAnalysis.Policy(Year(1))
+
+julia> exposure(basis, issue, termination)
+4-element Array{NamedTuple{(:from, :to),Tuple{Date,Date}},1}:
+ (from = Date("2016-07-04"), to = Date("2017-07-04"))
+ (from = Date("2017-07-04"), to = Date("2018-07-04"))
+ (from = Date("2018-07-04"), to = Date("2019-07-04"))
+ (from = Date("2019-07-04"), to = Date("2020-01-17"))
 
 
 """

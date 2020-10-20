@@ -174,3 +174,9 @@ And then the exposures look like the following. Note the difference in the fourt
 │ (from = Date("2019-01-01"), to = Date("2020-01-01")) │ 1.01389           │
 │ (from = Date("2020-01-01"), to = Date("2020-12-31")) │ 1.01389           │
 ```
+
+
+## Discussion and Questions
+
+If you have other ideas or questions, feel free to also open an issue, or discuss on the community [Zulip](https://julialang.zulipchat.com/#narrow/stream/249536-actuary) or [Slack #actuary channel](https://slackinvite.julialang.org/). We welcome all actuarial and related disciplines!
+

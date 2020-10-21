@@ -56,10 +56,9 @@ julia> df
 │ 3   │ 3      │ 2016-01-01 │ missing     │ Inforce │
 ```
 
-Define the study endpoints:
+Define the study end:
 
 ```julia
-study_start = Date(2017,1,1)
 study_end = Date(2020,12,31)
 ```
 
@@ -174,3 +173,41 @@ And then the exposures look like the following. Note the difference in the fourt
 │ (from = Date("2019-01-01"), to = Date("2020-01-01")) │ 1.01389           │
 │ (from = Date("2020-01-01"), to = Date("2020-12-31")) │ 1.01389           │
 ```
+
+### Study End/Start dates
+
+The examples above already incorporated the study end date. However, the study start date must be truncated as a post-processing step. This is because the `to` argument to the `exposure(...)` function defines the anchor point for the policy anniversary iteration. If the `to` was the study start date, then the anniversaries would follow that calendar date.
+
+To truncate the exposures, you would need to drop/update exposures. Continuing the example above:
+
+```julia
+study_start = Date(2017,1,1)
+
+# drop rows where the whole expsoure is before the study_start
+df_truncated = filter(row -> row.exposure.to >= study_start,df)
+
+# update the `from` where remaining exposures start before the study_start
+df_truncated.exposure = map(e -> (from = max(study_start,e.from),to = e.to), df_truncated.exposure)
+```
+
+And then `df_truncated` contains:
+
+```julia
+│ exposure                                             │
+│ NamedTuple{(:from, :to),Tuple{Date,Date}}            │
+┼──────────────────────────────────────────────────────┼
+│ (from = Date("2017-01-01"), to = Date("2017-07-04")) │
+│ (from = Date("2017-07-04"), to = Date("2018-07-04")) │
+│ (from = Date("2018-07-04"), to = Date("2019-07-04")) │
+│ (from = Date("2019-07-04"), to = Date("2020-07-04")) │
+│ (from = Date("2017-01-01"), to = Date("2017-01-01")) │
+│ (from = Date("2017-01-01"), to = Date("2018-01-01")) │
+│ (from = Date("2018-01-01"), to = Date("2018-05-04")) │
+│ (from = Date("2017-01-01"), to = Date("2017-01-01")) │
+│ (from = Date("2017-01-01"), to = Date("2018-01-01")) │
+│ (from = Date("2018-01-01"), to = Date("2019-01-01")) │
+│ (from = Date("2019-01-01"), to = Date("2020-01-01")) │
+│ (from = Date("2020-01-01"), to = Date("2020-12-31")) │
+```
+
+Last item to note is that you need to recalculate the `exposure_fraction` as it currently reflects the pre-truncated values. When actually building a process, you could truncate before calculating the fraction to begin with.

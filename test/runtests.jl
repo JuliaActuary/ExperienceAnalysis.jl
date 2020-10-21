@@ -96,3 +96,79 @@ end
         @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17))
     end
 end
+
+
+@testset "Experience Study Calculations" begin
+    # https://www.soa.org/globalassets/assets/files/research/experience-study-calculations.pdf
+
+    @testset "Section 4.3.1" begin
+        lives = [(
+            start = Date(2010,5,10),
+            termination = nothing,
+            status = "Inforce",
+        ),
+        (
+            start = Date(2010,9,27),
+            termination = Date(2012,2,16),
+            status = "Claim",
+        ),
+        (
+            start = Date(2010,7,3),
+            termination = Date(2012,10,21),
+            status = "Lapse",
+        ),
+        (
+            start = Date(2009,2,12),
+            termination = nothing,
+            status = "Inforce",
+        ),
+        (
+            start = Date(2009,10,30),
+            termination = Date(2013,12,27),
+            status = "Claim",
+        ),
+        (
+            start = Date(2009,7,5),
+            termination = Date(2010,3,17),
+            status = "Claim",
+        ),
+        ]
+
+        study_start = Date(2010,1,1)
+        study_end = Date(2014,1,1)
+
+        exp = Dict(
+
+            i => exposure(
+                ExperienceAnalysis.Policy(Year(1)),
+                l.start,
+                isnothing(l.termination) ? study_end : min(study_end,l.termination),
+                l.status == "Claim"
+            )
+            for (i,l) in enumerate(lives))
+
+        days = [e.to - e.from for e in exp[1]]
+        @test days == Day.([365,366,365,236])
+
+        days = [e.to - e.from for e in exp[2]]
+        @test days == Day.([365,366])
+
+        days = [e.to - e.from for e in exp[3]]
+        @test days == Day.([365,366,110])
+
+
+        # these fail because the study start doesn't truncate the starting date
+        # and the `from` argument needs to be the anniv for the right date iteration
+        days = [e.to - e.from for e in exp[4]]
+        @test_broken days == Day.([42,365,365,366,323])
+
+        days = [e.to - e.from for e in exp[5]]
+        @test_broken days == Day.([302,365,365,366,365])
+
+        days = [e.to - e.from for e in exp[6]]
+        @test_broken days == Day.([185])
+        
+
+    end
+
+end

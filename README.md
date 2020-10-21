@@ -217,3 +217,12 @@ Last item to note is that you need to recalculate the `exposure_fraction` as it 
 
 If you have other ideas or questions, feel free to also open an issue, or discuss on the community [Zulip](https://julialang.zulipchat.com/#narrow/stream/249536-actuary) or [Slack #actuary channel](https://slackinvite.julialang.org/). We welcome all actuarial and related disciplines!
 
+## Endnotes
+
+### References
+
+- [Experience Study Calculations](https://www.soa.org/globalassets/assets/files/research/experience-study-calculations.pdf) by the Society of Actuaries
+
+### Related Packages
+
+- [expstudies](https://github.com/MatthewCaseres/expstudies), an R package

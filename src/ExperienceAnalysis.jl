@@ -6,11 +6,11 @@ export exposure
 
 abstract type ExposurePeriod end
 
-struct Policy{T} <: ExposurePeriod 
+struct Anniversary{T} <: ExposurePeriod 
     pol_period::T
 end
 
-struct PolicyCalendar{T,U} <: ExposurePeriod 
+struct AnniversaryCalendar{T,U} <: ExposurePeriod 
     pol_period::T
     cal_period::U
 end
@@ -44,7 +44,7 @@ julia> using ExperienceAnalysis,Dates
 
 julia> issue = Date(2016, 7, 4)
 julia> termination = Date(2020, 1, 17)
-julia> basis = ExperienceAnalysis.Policy(Year(1))
+julia> basis = ExperienceAnalysis.Anniversary(Year(1))
 
 julia> exposure(basis, issue, termination)
 4-element Array{NamedTuple{(:from, :to),Tuple{Date,Date}},1}:
@@ -55,7 +55,7 @@ julia> exposure(basis, issue, termination)
 
 
 """
-function exposure(p::Policy{T},from, to, continued_exposure=false) where {T}
+function exposure(p::Anniversary{T},from, to, continued_exposure=false) where {T}
     period = p.pol_period
 	result = [next_exposure(from, to, period)]
 	while result[end].to < to
@@ -72,7 +72,7 @@ function exposure(p::Policy{T},from, to, continued_exposure=false) where {T}
 	return result
 end
     
-function exposure(p::PolicyCalendar{T,U},from, to, continued_exposure=false) where {T,U}
+function exposure(p::AnniversaryCalendar{T,U},from, to, continued_exposure=false) where {T,U}
 
     period = min(p.cal_period, p.pol_period)
     

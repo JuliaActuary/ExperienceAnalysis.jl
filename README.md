@@ -15,7 +15,7 @@ using Dates
 
 issue = Date(2016, 7, 4)
 termination = Date(2020, 1, 17)
-basis = ExperienceAnalysis.Policy(Year(1))
+basis = ExperienceAnalysis.Anniversary(Year(1))
 exposure(basis, issue, termination)
 ```
 This will return an array of tuples with a `from` and `to` date:
@@ -30,9 +30,9 @@ This will return an array of tuples with a `from` and `to` date:
 
 ## Available Exposure Basis
 
-- `ExperienceAnalysis.Policy(period)` will give exposures periods based on the first date
+- `ExperienceAnalysis.Anniversary(period)` will give exposures periods based on the first date
 - `ExperienceAnalysis.Calendar(period)` will follow calendar periods (e.g. month or year)
-- `ExperienceAnalysis.PolicyCalendar(period,period)` will split into the smaller of the calendar or policy period.
+- `ExperienceAnalysis.AnniversaryCalendar(period,period)` will split into the smaller of the calendar or policy anniversary period.
 
 Where `period` is a [Period Type from the Dates standard library](https://docs.julialang.org/en/v1/stdlib/Dates/#Period-Types).
 
@@ -75,7 +75,7 @@ Calculate the exposure by [broadcasting](https://docs.julialang.org/en/v1/manual
 
 ```julia
 df.exposure = exposure.(
-    ExperienceAnalysis.Policy(Year(1)),   # The basis for our exposures
+    ExperienceAnalysis.Anniversary(Year(1)),   # The basis for our exposures
     df.issue,                             # The `from` date
     to                                    # the `to` date array we created above
     )
@@ -147,7 +147,7 @@ Extending the above analysis, we want a full exposure period for any `"Claim"` i
 continue_exposure = df.status .== "Claim"
 
 df.exposure = exposure.(
-    ExperienceAnalysis.Policy(Year(1)),   # The basis for our exposures
+    ExperienceAnalysis.Anniversary(Year(1)),   # The basis for our exposures
     df.issue,                             # The `from` date
     to,                                   # the `to` date array we created above
     continue_exposure                     # full exposure or not (true/false)

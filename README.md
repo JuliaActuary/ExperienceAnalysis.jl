@@ -211,3 +211,9 @@ And then `df_truncated` contains:
 ```
 
 Last item to note is that you need to recalculate the `exposure_fraction` as it currently reflects the pre-truncated values. When actually building a process, you could truncate before calculating the fraction to begin with.
+
+
+## Discussion and Questions
+
+If you have other ideas or questions, feel free to also open an issue, or discuss on the community [Zulip](https://julialang.zulipchat.com/#narrow/stream/249536-actuary) or [Slack #actuary channel](https://slackinvite.julialang.org/). We welcome all actuarial and related disciplines!
+

@@ -6,27 +6,24 @@ export exposure
 
 abstract type ExposurePeriod end
 
-struct Anniversary{T} <: ExposurePeriod 
+struct Anniversary{T} <: ExposurePeriod
     pol_period::T
 end
 
-struct AnniversaryCalendar{T,U} <: ExposurePeriod 
+struct AnniversaryCalendar{T,U} <: ExposurePeriod
     pol_period::T
     cal_period::U
 end
 
-struct Calendar{U} <: ExposurePeriod 
+struct Calendar{U} <: ExposurePeriod
     cal_period::U
 end
 
 # make ExposurePeriod broadcastable so that you can broadcast 
-Base.Broadcast.broadcastable(ic::ExposurePeriod) = Ref(ic) 
+Base.Broadcast.broadcastable(ic::ExposurePeriod) = Ref(ic)
 
 function next_exposure(from, to, period)
-	
-	return (from = from, to = min(from + period, to))
-		
-	
+    return (from=from, to=min(from + period, to))
 end
 
 """
@@ -55,27 +52,27 @@ julia> exposure(basis, issue, termination)
 
 
 """
-function exposure(p::Anniversary{T},from, to, continued_exposure=false) where {T}
+function exposure(p::Anniversary{T}, from, to, continued_exposure=false) where {T}
     period = p.pol_period
-	result = [next_exposure(from, to, period)]
-	while result[end].to < to
-		push!(
+    result = [next_exposure(from, to, period)]
+    while result[end].to < to
+        push!(
             result,
             next_exposure(result[end].to, to, period)
-            )
-    end
-    
-    if continued_exposure && (result[end].to == to)
-        result[end] = (from=result[end].from,to=result[end].from + period)
+        )
     end
 
-	return result
+    if continued_exposure && (result[end].to == to)
+        result[end] = (from=result[end].from, to=result[end].from + period)
+    end
+
+    return result
 end
-    
-function exposure(p::AnniversaryCalendar{T,U},from, to, continued_exposure=false) where {T,U}
+
+function exposure(p::AnniversaryCalendar{T,U}, from, to, continued_exposure=false) where {T,U}
 
     period = min(p.cal_period, p.pol_period)
-    
+
     next_pol_per = from + p.pol_period
     next_cal_per = ceil(from, p.cal_period)
 
@@ -87,7 +84,7 @@ function exposure(p::AnniversaryCalendar{T,U},from, to, continued_exposure=false
             push!(
                 result,
                 next_exposure(result[end].to, next_terminus, period)
-                )                                                                                                                                                          
+            )
         end
         if result[end].to >= next_pol_per
             next_pol_per = next_pol_per + p.pol_period
@@ -98,17 +95,17 @@ function exposure(p::AnniversaryCalendar{T,U},from, to, continued_exposure=false
 
         next_terminus = min(min(next_pol_per, next_cal_per), to)
     end
-    
+
     if continued_exposure && (result[end].to == to)
-        result[end] = (from=result[end].from,to=min(next_pol_per, next_cal_per))
+        result[end] = (from=result[end].from, to=min(next_pol_per, next_cal_per))
     end
 
-	return result
+    return result
 end
 
-function exposure(p::Calendar{U},from, to,continued_exposure=false) where {U}
+function exposure(p::Calendar{U}, from, to, continued_exposure=false) where {U}
     period = p.cal_period
-    
+
     next_cal_per = ceil(from, p.cal_period)
 
     next_terminus = min(next_cal_per, to)
@@ -119,7 +116,7 @@ function exposure(p::Calendar{U},from, to,continued_exposure=false) where {U}
             push!(
                 result,
                 next_exposure(result[end].to, next_terminus, period)
-                )
+            )
         end
         if result[end].to >= next_cal_per
             next_cal_per = ceil(next_cal_per + p.cal_period, p.cal_period)
@@ -127,12 +124,12 @@ function exposure(p::Calendar{U},from, to,continued_exposure=false) where {U}
 
         next_terminus = min(next_cal_per, to)
     end
-    
+
     if continued_exposure && (result[end].to == to)
-        result[end] = (from=result[end].from,to=result[end].from + period)
+        result[end] = (from=result[end].from, to=result[end].from + period)
     end
 
-	return result
+    return result
 end
 
 end

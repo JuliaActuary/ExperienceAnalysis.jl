@@ -6,23 +6,23 @@ export exposure
 
 abstract type ExposurePeriod end
 
-struct Anniversary{T} <: ExposurePeriod
-    pol_period::T
+struct Anniversary <: ExposurePeriod
+    pol_period::Union{Month, Year}
 end
 
-struct AnniversaryCalendar{T,U} <: ExposurePeriod
-    pol_period::T
-    cal_period::U
+struct AnniversaryCalendar <: ExposurePeriod
+    pol_period::Union{Month, Year}
+    cal_period::Union{Month, Year}
 end
 
-struct Calendar{U} <: ExposurePeriod
-    cal_period::U
+struct Calendar <: ExposurePeriod
+    cal_period::Union{Month, Year}
 end
 
 # make ExposurePeriod broadcastable so that you can broadcast 
 Base.Broadcast.broadcastable(ic::ExposurePeriod) = Ref(ic)
 
-function next_exposure(from, to, period)
+function next_exposure(from::Date, to::Date, period::Union{Month, Year})
     return (from=from, to=min(from + period, to))
 end
 
@@ -52,7 +52,8 @@ julia> exposure(basis, issue, termination)
 
 
 """
-function exposure(p::Anniversary{T}, from, to, continued_exposure=false) where {T}
+function exposure(p::Anniversary, from::Date, to::Date, continued_exposure::Bool=false)
+    to < from && throw(DomainError("from=$from argument is a later date than the to=$to argument."))
     period = p.pol_period
     result = [next_exposure(from, to, period)]
     while result[end].to < to
@@ -69,8 +70,8 @@ function exposure(p::Anniversary{T}, from, to, continued_exposure=false) where {
     return result
 end
 
-function exposure(p::AnniversaryCalendar{T,U}, from, to, continued_exposure=false) where {T,U}
-
+function exposure(p::AnniversaryCalendar, from::Date, to::Date, continued_exposure::Bool=false)
+    to < from && throw(DomainError("from=$from argument is a later date than the to=$to argument."))
     period = min(p.cal_period, p.pol_period)
 
     next_pol_per = from + p.pol_period
@@ -103,7 +104,8 @@ function exposure(p::AnniversaryCalendar{T,U}, from, to, continued_exposure=fals
     return result
 end
 
-function exposure(p::Calendar{U}, from, to, continued_exposure=false) where {U}
+function exposure(p::Calendar, from::Date, to::Date, continued_exposure::Bool=false)
+    to < from && throw(DomainError("from=$from argument is a later date than the to=$to argument."))
     period = p.cal_period
 
     next_cal_per = ceil(from, p.cal_period)

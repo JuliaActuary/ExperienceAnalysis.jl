@@ -7,22 +7,22 @@ export exposure
 abstract type ExposurePeriod end
 
 struct Anniversary <: ExposurePeriod
-    pol_period::Union{Month, Year}
+    pol_period::Period
 end
 
 struct AnniversaryCalendar <: ExposurePeriod
-    pol_period::Union{Month, Year}
-    cal_period::Union{Month, Year}
+    pol_period::Period
+    cal_period::Period
 end
 
 struct Calendar <: ExposurePeriod
-    cal_period::Union{Month, Year}
+    cal_period::Period
 end
 
 # make ExposurePeriod broadcastable so that you can broadcast 
 Base.Broadcast.broadcastable(ic::ExposurePeriod) = Ref(ic)
 
-function next_exposure(from::Date, to::Date, period::Union{Month, Year})
+function next_exposure(from::Date, to::Date, period::Period)
     return (from=from, to=min(from + period, to))
 end
 

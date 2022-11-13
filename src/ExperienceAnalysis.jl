@@ -6,17 +6,17 @@ export exposure
 
 abstract type ExposurePeriod end
 
-struct Anniversary <: ExposurePeriod
-    pol_period::Period
+struct Anniversary{T<:Period} <: ExposurePeriod
+    pol_period::T
 end
 
-struct AnniversaryCalendar <: ExposurePeriod
-    pol_period::Period
-    cal_period::Period
+struct AnniversaryCalendar{T<:Period, U<:Period} <: ExposurePeriod
+    pol_period::T
+    cal_period::U
 end
 
-struct Calendar <: ExposurePeriod
-    cal_period::Period
+struct Calendar{U<:Period} <: ExposurePeriod
+    cal_period::U
 end
 
 # make ExposurePeriod broadcastable so that you can broadcast 

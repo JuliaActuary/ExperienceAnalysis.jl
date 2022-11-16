@@ -14,11 +14,11 @@ using Dates
     end
 
     @testset "Year with full exp" begin
-    exp = exposure(ExperienceAnalysis.Anniversary(Year(1)), issue, termination,true)
+        exp = exposure(ExperienceAnalysis.Anniversary(Year(1)), issue, termination,true)
 
-    @test exp[1]   == (from = Date(2016, 7, 4), to = Date(2017, 7, 4))
-    @test exp[end] == (from = Date(2019, 7, 4), to = Date(2020, 7, 4))
-end
+        @test exp[1]   == (from = Date(2016, 7, 4), to = Date(2017, 7, 4))
+        @test exp[end] == (from = Date(2019, 7, 4), to = Date(2020, 7, 4))
+    end
 
     @testset "Month" begin
         exp = exposure(ExperienceAnalysis.Anniversary(Month(1)), issue, termination)
@@ -41,12 +41,12 @@ end
     end
 
     @testset "Year with full exp" begin
-    exp = exposure(ExperienceAnalysis.Calendar(Year(1)), issue, termination,true)
+        exp = exposure(ExperienceAnalysis.Calendar(Year(1)), issue, termination,true)
 
-    @test exp[1]   == (from = Date(2016, 7, 4), to = Date(2017, 1, 1))
-    @test exp[2]   == (from = Date(2017, 1, 1), to = Date(2018, 1, 1))
-    @test exp[end] == (from = Date(2020, 1, 1), to = Date(2021, 1, 1))
-end
+        @test exp[1]   == (from = Date(2016, 7, 4), to = Date(2017, 1, 1))
+        @test exp[2]   == (from = Date(2017, 1, 1), to = Date(2018, 1, 1))
+        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2021, 1, 1))
+    end
 
     @testset "Month" begin
         exp = exposure(ExperienceAnalysis.Calendar(Month(1)), issue, termination)
@@ -71,12 +71,12 @@ end
     end
 
     @testset "Year/Year with full exp" begin
-    exp = exposure(ExperienceAnalysis.AnniversaryCalendar(Year(1), Year(1)), issue, termination,true)
+        exp = exposure(ExperienceAnalysis.AnniversaryCalendar(Year(1), Year(1)), issue, termination,true)
 
-    @test exp[1]   == (from = Date(2016, 7, 4), to = Date(2017, 1, 1))
-    @test exp[2]   == (from = Date(2017, 1, 1), to = Date(2017, 7, 4))
-    @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 7, 4))
-end
+        @test exp[1]   == (from = Date(2016, 7, 4), to = Date(2017, 1, 1))
+        @test exp[2]   == (from = Date(2017, 1, 1), to = Date(2017, 7, 4))
+        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 7, 4))
+    end
 
 
     @testset "Month/Year" begin
@@ -95,6 +95,12 @@ end
         @test exp[2]   == (from = Date(2016, 8, 1), to = Date(2016, 8, 4))
         @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17))
     end
+end
+
+@testset "from > to throws error" begin
+    @test_throws DomainError exposure(ExperienceAnalysis.Anniversary(Year(1)), Date(2020, 1, 17), Date(2016, 7, 4))
+    @test_throws DomainError exposure(ExperienceAnalysis.AnniversaryCalendar(Year(1), Year(1)), Date(2020, 1, 17), Date(2016, 7, 4))
+    @test_throws DomainError exposure(ExperienceAnalysis.Calendar(Year(1)), Date(2020, 1, 17), Date(2016, 7, 4))
 end
 
 

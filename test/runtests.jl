@@ -9,22 +9,28 @@ using Dates
     @testset "Year" begin
         exp = exposure(ExperienceAnalysis.Anniversary(Year(1)), issue, termination)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 7, 3), policy_timestep = 1)
-        @test exp[end] == (from = Date(2019, 7, 4), to = Date(2020, 1, 17), policy_timestep = 4)
+        @test exp[1] ==
+              (from = Date(2016, 7, 4), to = Date(2017, 7, 3), policy_timestep = 1)
+        @test exp[end] ==
+              (from = Date(2019, 7, 4), to = Date(2020, 1, 17), policy_timestep = 4)
     end
 
     @testset "Year with full exp" begin
         exp = exposure(ExperienceAnalysis.Anniversary(Year(1)), issue, termination, true)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 7, 3), policy_timestep = 1)
-        @test exp[end] == (from = Date(2019, 7, 4), to = Date(2020, 7, 3), policy_timestep = 4)
+        @test exp[1] ==
+              (from = Date(2016, 7, 4), to = Date(2017, 7, 3), policy_timestep = 1)
+        @test exp[end] ==
+              (from = Date(2019, 7, 4), to = Date(2020, 7, 3), policy_timestep = 4)
     end
 
     @testset "Month" begin
         exp = exposure(ExperienceAnalysis.Anniversary(Month(1)), issue, termination)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 8, 3), policy_timestep = 1)
-        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
+        @test exp[1] ==
+              (from = Date(2016, 7, 4), to = Date(2016, 8, 3), policy_timestep = 1)
+        @test exp[end] ==
+              (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
     end
 end
 
@@ -69,9 +75,12 @@ end
             termination,
         )
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 12, 31), policy_timestep = 1)
-        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2017, 7, 3), policy_timestep = 1)
-        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 1, 17), policy_timestep = 4)
+        @test exp[1] ==
+              (from = Date(2016, 7, 4), to = Date(2016, 12, 31), policy_timestep = 1)
+        @test exp[2] ==
+              (from = Date(2017, 1, 1), to = Date(2017, 7, 3), policy_timestep = 1)
+        @test exp[end] ==
+              (from = Date(2020, 1, 1), to = Date(2020, 1, 17), policy_timestep = 4)
     end
 
     @testset "Year/Year with full exp" begin
@@ -82,9 +91,12 @@ end
             true,
         )
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 12, 31), policy_timestep = 1)
-        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2017, 7, 3), policy_timestep = 1)
-        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 7, 3), policy_timestep = 4)
+        @test exp[1] ==
+              (from = Date(2016, 7, 4), to = Date(2016, 12, 31), policy_timestep = 1)
+        @test exp[2] ==
+              (from = Date(2017, 1, 1), to = Date(2017, 7, 3), policy_timestep = 1)
+        @test exp[end] ==
+              (from = Date(2020, 1, 1), to = Date(2020, 7, 3), policy_timestep = 4)
     end
 
 
@@ -95,10 +107,14 @@ end
             termination,
         )
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 8, 3), policy_timestep = 1)
-        @test exp[6] == (from = Date(2016, 12, 4), to = Date(2016, 12, 31), policy_timestep = 6)
-        @test exp[7] == (from = Date(2017, 1, 1), to = Date(2017, 1, 3), policy_timestep = 6)
-        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
+        @test exp[1] ==
+              (from = Date(2016, 7, 4), to = Date(2016, 8, 3), policy_timestep = 1)
+        @test exp[6] ==
+              (from = Date(2016, 12, 4), to = Date(2016, 12, 31), policy_timestep = 6)
+        @test exp[7] ==
+              (from = Date(2017, 1, 1), to = Date(2017, 1, 3), policy_timestep = 6)
+        @test exp[end] ==
+              (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
     end
 
     @testset "Month/Month" begin
@@ -108,9 +124,43 @@ end
             termination,
         )
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 7, 31), policy_timestep = 1)
-        @test exp[2] == (from = Date(2016, 8, 1), to = Date(2016, 8, 3), policy_timestep = 1)
-        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
+        @test exp[1] ==
+              (from = Date(2016, 7, 4), to = Date(2016, 7, 31), policy_timestep = 1)
+        @test exp[2] ==
+              (from = Date(2016, 8, 1), to = Date(2016, 8, 3), policy_timestep = 1)
+        @test exp[end] ==
+              (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
+    end
+end
+
+@testset "edge cases" begin
+    @testset "Leap years" begin
+        exp = exposure(
+            ExperienceAnalysis.Anniversary(Year(1)),
+            Date(2016, 2, 29),
+            Date(2020, 3, 29),
+        )
+        @test exp[1] ==
+              (from = Date(2016, 2, 29), to = Date(2017, 2, 27), policy_timestep = 1)
+        @test exp[2] ==
+              (from = Date(2017, 2, 28), to = Date(2018, 2, 27), policy_timestep = 2)
+        @test exp[5] ==
+              (from = Date(2020, 2, 29), to = Date(2020, 3, 29), policy_timestep = 5)
+    end
+    @testset "Month ends" begin
+        exp = exposure(
+            ExperienceAnalysis.Anniversary(Month(1)),
+            Date(2016, 1, 31),
+            Date(2016, 4, 30),
+        )
+        @test exp[1] ==
+              (from = Date(2016, 1, 31), to = Date(2016, 2, 28), policy_timestep = 1)
+        @test exp[2] ==
+              (from = Date(2016, 2, 29), to = Date(2016, 3, 30), policy_timestep = 2)
+        @test exp[3] ==
+              (from = Date(2016, 3, 31), to = Date(2016, 4, 29), policy_timestep = 3)
+        @test exp[4] ==
+              (from = Date(2016, 4, 30), to = Date(2016, 4, 30), policy_timestep = 4)
     end
 end
 
@@ -131,6 +181,8 @@ end
         Date(2016, 7, 4),
     )
 end
+
+
 
 
 @testset "Experience Study Calculations" begin

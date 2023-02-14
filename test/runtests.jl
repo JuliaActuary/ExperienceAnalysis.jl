@@ -9,22 +9,22 @@ using Dates
     @testset "Year" begin
         exp = exposure(ExperienceAnalysis.Anniversary(Year(1)), issue, termination)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 7, 4))
-        @test exp[end] == (from = Date(2019, 7, 4), to = Date(2020, 1, 17))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 7, 3), policy_timestep = 1)
+        @test exp[end] == (from = Date(2019, 7, 4), to = Date(2020, 1, 17), policy_timestep = 4)
     end
 
     @testset "Year with full exp" begin
         exp = exposure(ExperienceAnalysis.Anniversary(Year(1)), issue, termination, true)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 7, 4))
-        @test exp[end] == (from = Date(2019, 7, 4), to = Date(2020, 7, 4))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 7, 3), policy_timestep = 1)
+        @test exp[end] == (from = Date(2019, 7, 4), to = Date(2020, 7, 3), policy_timestep = 4)
     end
 
     @testset "Month" begin
         exp = exposure(ExperienceAnalysis.Anniversary(Month(1)), issue, termination)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 8, 4))
-        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 8, 3), policy_timestep = 1)
+        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
     end
 end
 
@@ -35,24 +35,24 @@ end
     @testset "Year" begin
         exp = exposure(ExperienceAnalysis.Calendar(Year(1)), issue, termination)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 1, 1))
-        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2018, 1, 1))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 12, 31))
+        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2017, 12, 31))
         @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 1, 17))
     end
 
     @testset "Year with full exp" begin
         exp = exposure(ExperienceAnalysis.Calendar(Year(1)), issue, termination, true)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 1, 1))
-        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2018, 1, 1))
-        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2021, 1, 1))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 12, 31))
+        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2017, 12, 31))
+        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 12, 31))
     end
 
     @testset "Month" begin
         exp = exposure(ExperienceAnalysis.Calendar(Month(1)), issue, termination)
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 8, 1))
-        @test exp[2] == (from = Date(2016, 8, 1), to = Date(2016, 9, 1))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 7, 31))
+        @test exp[2] == (from = Date(2016, 8, 1), to = Date(2016, 8, 31))
         @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 1, 17))
     end
 end
@@ -69,9 +69,9 @@ end
             termination,
         )
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 1, 1))
-        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2017, 7, 4))
-        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 1, 17))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 12, 31), policy_timestep = 1)
+        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2017, 7, 3), policy_timestep = 1)
+        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 1, 17), policy_timestep = 4)
     end
 
     @testset "Year/Year with full exp" begin
@@ -82,9 +82,9 @@ end
             true,
         )
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2017, 1, 1))
-        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2017, 7, 4))
-        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 7, 4))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 12, 31), policy_timestep = 1)
+        @test exp[2] == (from = Date(2017, 1, 1), to = Date(2017, 7, 3), policy_timestep = 1)
+        @test exp[end] == (from = Date(2020, 1, 1), to = Date(2020, 7, 3), policy_timestep = 4)
     end
 
 
@@ -95,10 +95,10 @@ end
             termination,
         )
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 8, 4))
-        @test exp[6] == (from = Date(2016, 12, 4), to = Date(2017, 1, 1))
-        @test exp[7] == (from = Date(2017, 1, 1), to = Date(2017, 1, 4))
-        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 8, 3), policy_timestep = 1)
+        @test exp[6] == (from = Date(2016, 12, 4), to = Date(2016, 12, 31), policy_timestep = 6)
+        @test exp[7] == (from = Date(2017, 1, 1), to = Date(2017, 1, 3), policy_timestep = 6)
+        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
     end
 
     @testset "Month/Month" begin
@@ -108,9 +108,9 @@ end
             termination,
         )
 
-        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 8, 1))
-        @test exp[2] == (from = Date(2016, 8, 1), to = Date(2016, 8, 4))
-        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17))
+        @test exp[1] == (from = Date(2016, 7, 4), to = Date(2016, 7, 31), policy_timestep = 1)
+        @test exp[2] == (from = Date(2016, 8, 1), to = Date(2016, 8, 3), policy_timestep = 1)
+        @test exp[end] == (from = Date(2020, 1, 4), to = Date(2020, 1, 17), policy_timestep = 43)
     end
 end
 
@@ -151,7 +151,7 @@ end
         ]
 
         study_start = Date(2010, 1, 1)
-        study_end = Date(2014, 1, 1)
+        study_end = Date(2013, 12, 31) # inclusive end date [study_start, study_end]
 
         exp = Dict(
             i => exposure(
@@ -162,25 +162,26 @@ end
             ) for (i, l) in enumerate(lives)
         )
 
-        days = [e.to - e.from for e in exp[1]]
+        days = [e.to - e.from + Day(1) for e in exp[1]]
         @test days == Day.([365, 366, 365, 236])
 
-        days = [e.to - e.from for e in exp[2]]
+        days = [e.to - e.from + Day(1) for e in exp[2]]
         @test days == Day.([365, 366])
 
-        days = [e.to - e.from for e in exp[3]]
-        @test days == Day.([365, 366, 110])
+        # this fails because SOA document uses non-inclusive right endpoint for lapse date, [study_start, lapse_date)
+        days = [e.to - e.from + Day(1) for e in exp[3]]
+        @test_broken days == Day.([365, 366, 110])
 
 
         # these fail because the study start doesn't truncate the starting date
         # and the `from` argument needs to be the anniv for the right date iteration
-        days = [e.to - e.from for e in exp[4]]
+        days = [e.to - e.from + Day(1) for e in exp[4]]
         @test_broken days == Day.([42, 365, 365, 366, 323])
 
-        days = [e.to - e.from for e in exp[5]]
+        days = [e.to - e.from + Day(1) for e in exp[5]]
         @test_broken days == Day.([302, 365, 365, 366, 365])
 
-        days = [e.to - e.from for e in exp[6]]
+        days = [e.to - e.from + Day(1) for e in exp[6]]
         @test_broken days == Day.([185])
 
 

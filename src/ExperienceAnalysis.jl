@@ -6,25 +6,21 @@ export exposure
 
 abstract type ExposurePeriod end
 
-struct Anniversary{T<:Period} <: ExposurePeriod
+struct Anniversary{T<:DatePeriod} <: ExposurePeriod
     pol_period::T
 end
 
-struct AnniversaryCalendar{T<:Period, U<:Period} <: ExposurePeriod
+struct AnniversaryCalendar{T<:DatePeriod,U<:DatePeriod} <: ExposurePeriod
     pol_period::T
     cal_period::U
 end
 
-struct Calendar{U<:Period} <: ExposurePeriod
+struct Calendar{U<:DatePeriod} <: ExposurePeriod
     cal_period::U
 end
 
 # make ExposurePeriod broadcastable so that you can broadcast 
 Base.Broadcast.broadcastable(ic::ExposurePeriod) = Ref(ic)
-
-function next_exposure(from::Date, to::Date, period::Period)
-    return (from=from, to=min(from + period, to))
-end
 
 """
     exposure(ExposurePeriod,from,to,continued_exposure=false)
@@ -52,83 +48,91 @@ julia> exposure(basis, issue, termination)
 
 
 """
-function exposure(p::Anniversary, from::Date, to::Date, continued_exposure::Bool=false)
-    to < from && throw(DomainError("from=$from argument is a later date than the to=$to argument."))
+function exposure(p::Anniversary, from::Date, to::Date, continued_exposure::Bool = false)
+    to < from &&
+        throw(DomainError("from=$from argument is a later date than the to=$to argument."))
     period = p.pol_period
-    result = [next_exposure(from, to, period)]
-    while result[end].to < to
-        push!(
-            result,
-            next_exposure(result[end].to, to, period)
+    t = 1
+    cur = from
+    nxt = from + period
+    result = []
+    while cur <= to #more rows to fill
+        push!(result, (from = cur, to = nxt - Day(1), policy_timestep = t))
+        t += 1
+        cur, nxt = nxt, from + t * period
+    end
+
+    if !continued_exposure
+        result[end] = (
+            from = result[end].from,
+            to = to,
+            policy_timestep = result[end].policy_timestep,
         )
     end
 
-    if continued_exposure && (result[end].to == to)
-        result[end] = (from=result[end].from, to=result[end].from + period)
-    end
-
     return result
 end
 
-function exposure(p::AnniversaryCalendar, from::Date, to::Date, continued_exposure::Bool=false)
-    to < from && throw(DomainError("from=$from argument is a later date than the to=$to argument."))
-    period = min(p.cal_period, p.pol_period)
+function exposure(
+    p::AnniversaryCalendar,
+    from::Date,
+    to::Date,
+    continued_exposure::Bool = false,
+)
+    to < from &&
+        throw(DomainError("from=$from argument is a later date than the to=$to argument."))
 
+    cur = from
+    pol_t = 1
     next_pol_per = from + p.pol_period
-    next_cal_per = ceil(from, p.cal_period)
+    next_cal_per = floor(from, p.cal_period) + p.cal_period
 
-    next_terminus = min(min(next_pol_per, next_cal_per), to)
-
-    result = [next_exposure(from, next_terminus, period)]
-    while result[end].to < to
-        while result[end].to < next_terminus
-            push!(
-                result,
-                next_exposure(result[end].to, next_terminus, period)
-            )
+    result = []
+    while cur <= to
+        if next_pol_per < next_cal_per
+            push!(result, (from = cur, to = next_pol_per - Day(1), policy_timestep = pol_t))
+            cur = next_pol_per
+            pol_t += 1
+            next_pol_per = from + pol_t * p.pol_period
+        elseif next_pol_per > next_cal_per
+            push!(result, (from = cur, to = next_cal_per - Day(1), policy_timestep = pol_t))
+            cur = next_cal_per
+            next_cal_per += p.cal_period
+        else # next_pol_per == next_cal_per
+            cur = next_pol_per
+            pol_t += 1
+            next_pol_per = from + pol_t * p.pol_period
+            next_cal_per += p.cal_period
         end
-        if result[end].to >= next_pol_per
-            next_pol_per = next_pol_per + p.pol_period
-        end
-        if result[end].to >= next_cal_per
-            next_cal_per = ceil(next_cal_per + p.cal_period, p.cal_period)
-        end
-
-        next_terminus = min(min(next_pol_per, next_cal_per), to)
     end
 
-    if continued_exposure && (result[end].to == to)
-        result[end] = (from=result[end].from, to=min(next_pol_per, next_cal_per))
+    if !continued_exposure
+        result[end] = (
+            from = result[end].from,
+            to = to,
+            policy_timestep = result[end].policy_timestep,
+        )
     end
 
     return result
 end
 
-function exposure(p::Calendar, from::Date, to::Date, continued_exposure::Bool=false)
-    to < from && throw(DomainError("from=$from argument is a later date than the to=$to argument."))
+function exposure(p::Calendar, from::Date, to::Date, continued_exposure::Bool = false)
+    to < from &&
+        throw(DomainError("from=$from argument is a later date than the to=$to argument."))
     period = p.cal_period
 
-    next_cal_per = ceil(from, p.cal_period)
+    cur = from
+    nxt = floor(from, period) + period
+    result = []
 
-    next_terminus = min(next_cal_per, to)
-
-    result = [next_exposure(from, next_terminus, period)]
-    while result[end].to < to
-        while result[end].to < next_terminus
-            push!(
-                result,
-                next_exposure(result[end].to, next_terminus, period)
-            )
-        end
-        if result[end].to >= next_cal_per
-            next_cal_per = ceil(next_cal_per + p.cal_period, p.cal_period)
-        end
-
-        next_terminus = min(next_cal_per, to)
+    while cur <= to
+        push!(result, (from = cur, to = nxt - Day(1)))
+        cur, nxt = nxt, nxt + period
     end
 
-    if continued_exposure && (result[end].to == to)
-        result[end] = (from=result[end].from, to=result[end].from + period)
+    if !continued_exposure
+        result[end] = (from = result[end].from, to = to)
     end
 
     return result

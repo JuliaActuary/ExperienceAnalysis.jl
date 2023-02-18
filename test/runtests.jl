@@ -2,6 +2,9 @@ using ExperienceAnalysis
 using Test
 using Dates
 
+include("left_right_partials.jl")
+include("utils.jl")
+
 @testset "Anniversary" begin
     issue = Date(2016, 7, 4)
     termination = Date(2020, 1, 17)

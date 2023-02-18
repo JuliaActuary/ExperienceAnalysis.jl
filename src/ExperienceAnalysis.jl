@@ -23,6 +23,71 @@ end
 Base.Broadcast.broadcastable(ic::ExposurePeriod) = Ref(ic)
 
 """
+get smallest `t` such that `from + t*step > max(from, left_trunc)`
+"""
+function get_timestep_past(from::Date, left_trunc::Date, step::DatePeriod)
+    if from >= left_trunc
+        return 1
+    end
+    t = 1
+    while from + t * step <= left_trunc
+        t += 1
+    end
+    return t
+end
+
+"""
+We create intervals with two pointers. This function helps us find the starting points of the first and second intervals, `cur` and `nxt`. We also return the timestep of the interval starting with `nxt`.
+"""
+function preprocess_left(
+    from::Date,
+    step::DatePeriod,
+    study_start::Union{Date,Nothing},
+    left_partials::Bool,
+)
+    # deal with nothing case
+    left_trunc = isnothing(study_start) ? from : max(from, study_start)
+    # find first endpoint
+    t = get_timestep_past(from, left_trunc, step)
+    # if left_partials == false:
+    # from + (t-1) * step == left_trunc means that the first interval is good and need not be skipped.
+    if left_partials || (from + (t - 1) * step == left_trunc)
+        cur = left_trunc
+        nxt = from + t * step
+        return cur, nxt, t
+    else
+        cur = from + t * step
+        nxt = from + (t + 1) * step
+        return cur, nxt, t + 1
+    end
+end
+
+"""
+If data has problems like `from > to` or `study_start > study_end` throw an error. 
+If the policy doesn't overlap with the study period, return false. If there is overlap, return true.
+"""
+function validate(
+    from::Date,
+    to::Union{Date,Nothing},
+    study_start::Union{Date,Nothing},
+    study_end::Date,
+)
+    # throw errors if inputs are not good
+    from > to &&
+        throw(DomainError("from=$from argument is a later date than the to=$to argument."))
+    !isnothing(study_start) &&
+        study_start > study_end &&
+        throw(
+            DomainError(
+                "study_start=$study_start argument is a later date than the study_end=$study_end argument.",
+            ),
+        )
+
+    # if no overlap return false, if overlap return true
+    return (isnothing(study_start) || study_start <= to) && (from <= study_end)
+end
+
+"""
     exposure(ExposurePeriod,from,to,continued_exposure=false)
 
 Return an array of name tuples `(from=Date,to=Date)` of the exposure periods for the given `ExposurePeriod`s. 
@@ -48,24 +113,41 @@ julia> exposure(basis, issue, termination)
 
 
 """
-function exposure(p::Anniversary, from::Date, to::Date, continued_exposure::Bool = false)
-    to < from &&
-        throw(DomainError("from=$from argument is a later date than the to=$to argument."))
+function exposure(
+    p::Anniversary,
+    from::Date,
+    to::Union{Date,Nothing};
+    continued_exposure::Bool = false,
+    study_start::Union{Date,Nothing} = nothing,
+    study_end::Date,
+    left_partials::Bool = false,
+    right_partials::Bool = false,
+)::Vector{NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}}
+
+    result = NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}[]
+    # no overlap
+    if !validate(from, to, study_start, study_end)
+        return result
+    end
     period = p.pol_period
-    t = 1
-    cur = from
-    nxt = from + period
-    result = []
-    while cur <= to #more rows to fill
+    right_trunc = isnothing(to) ? study_end : min(study_end, to)
+    # cur is current interval start, nxt is next interval start, t is timestep for nxt
+    cur, nxt, t = preprocess_left(from, period, study_start, left_partials)
+    while cur <= right_trunc #more rows to fill
         push!(result, (from = cur, to = nxt - Day(1), policy_timestep = t))
         t += 1
         cur, nxt = nxt, from + t * period
     end
 
+    # If no partial exposures on right, remove last interval if it is out of bounds
+    if !right_partials && (cur > study_end + Day(1))
+        pop!(result)
+    end
+    # If exposure is not continued, it should go at most to right_trunc
     if !continued_exposure
         result[end] = (
             from = result[end].from,
-            to = to,
+            to = min(result[end].from + period - Day(1), right_trunc),
             policy_timestep = result[end].policy_timestep,
         )
     end

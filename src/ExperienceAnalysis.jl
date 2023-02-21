@@ -75,6 +75,7 @@ function validate(
     # throw errors if inputs are not good
     from > to &&
         throw(DomainError("from=$from argument is a later date than the to=$to argument."))
+
     !isnothing(study_start) &&
         study_start > study_end &&
         throw(
@@ -147,7 +148,7 @@ function exposure(
     if !continued_exposure
         result[end] = (
             from = result[end].from,
-            to = min(result[end].from + period - Day(1), right_trunc),
+            to = min(result[end].to, right_trunc),
             policy_timestep = result[end].policy_timestep,
         )
     end
@@ -199,22 +200,30 @@ function exposure(
     return result
 end
 
-function exposure(p::Calendar, from::Date, to::Date, continued_exposure::Bool = false)
-    to < from &&
-        throw(DomainError("from=$from argument is a later date than the to=$to argument."))
+function exposure(
+    p::Calendar, 
+    from::Date, 
+    to::Union{Date,Nothing};
+    continued_exposure::Bool = false,
+    study_start::Union{Date, Nothing} = nothing,
+    study_end::Date,
+)::Vector{NamedTuple{(:from, :to),Tuple{Date,Date}}}
+    result = NamedTuple{(:from, :to),Tuple{Date,Date}}[]
+    # no overlap
+    if !validate(from, to, study_start, study_end)
+        return result
+    end
     period = p.cal_period
-
-    cur = from
-    nxt = floor(from, period) + period
-    result = []
-
-    while cur <= to
+    right_trunc = isnothing(to) ? study_end : min(study_end, to)
+    cur = isnothing(study_start) ? from : max(from, study_start)
+    nxt = floor(cur, period) + period
+    while cur <= right_trunc
         push!(result, (from = cur, to = nxt - Day(1)))
         cur, nxt = nxt, nxt + period
     end
 
     if !continued_exposure
-        result[end] = (from = result[end].from, to = to)
+        result[end] = (from = result[end].from, to = min(to, right_trunc))
     end
 
     return result

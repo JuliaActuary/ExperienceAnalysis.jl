@@ -4,6 +4,7 @@ using Dates
 
 include("left_right_partials.jl")
 include("utils.jl")
+include("calendar.jl")
 
 @testset "Anniversary" begin
     issue = Date(2016, 7, 4)

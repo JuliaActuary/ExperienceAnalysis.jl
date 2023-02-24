@@ -3,7 +3,7 @@ using Dates
 using Test
 
 @testset "process_left" begin
-    
+
 end
 
 @testset "`validate` throws errors on malformed data" begin
@@ -32,7 +32,7 @@ end
             Date(2016, 8, 1),
             Date(2016, 8, 3),
         )
-    
+
         # study ends before policy starts
         @test !ExperienceAnalysis.validate(
             Date(2016, 7, 4),
@@ -40,7 +40,7 @@ end
             Date(2016, 6, 1),
             Date(2016, 6, 3),
         )
-    
+
         # study_start is nothing and there is no overlap
         @test !ExperienceAnalysis.validate(
             Date(2016, 7, 4),
@@ -58,7 +58,7 @@ end
             nothing,
             Date(2016, 8, 3),
         )
-    
+
         # study_start is not nothing and there is overlap
         @test ExperienceAnalysis.validate(
             Date(2016, 7, 4),

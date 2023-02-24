@@ -134,18 +134,14 @@ function exposure(
     right_trunc = isnothing(to) ? study_end : min(study_end, to)
     # cur is current interval start, nxt is next interval start, t is timestep for nxt
     cur, nxt, t = preprocess_left(from, period, study_start, left_partials)
-    while cur <= right_trunc #more rows to fill
+    while cur <= right_trunc && (right_partials || (nxt <= study_end + Day(1))) #more rows to fill 
         push!(result, (from = cur, to = nxt - Day(1), policy_timestep = t))
         t += 1
         cur, nxt = nxt, from + t * period
     end
 
-    # If no partial exposures on right, remove last interval if it is out of bounds
-    if !right_partials && (cur > study_end + Day(1))
-        pop!(result)
-    end
     # If exposure is not continued, it should go at most to right_trunc
-    if !continued_exposure
+    if !continued_exposure && !isempty(result)
         result[end] = (
             from = result[end].from,
             to = min(result[end].to, right_trunc),
@@ -159,19 +155,26 @@ end
 function exposure(
     p::AnniversaryCalendar,
     from::Date,
-    to::Date,
+    to::Date;
     continued_exposure::Bool = false,
+    study_start::Union{Date,Nothing} = nothing,
+    study_end::Date,
+    left_partials::Bool = false,
+    right_partials::Bool = false,
 )
-    to < from &&
-        throw(DomainError("from=$from argument is a later date than the to=$to argument."))
-
-    cur = from
-    pol_t = 1
-    next_pol_per = from + p.pol_period
-    next_cal_per = floor(from, p.cal_period) + p.cal_period
-
-    result = []
-    while cur <= to
+    result = NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}[]
+    # no overlap
+    if !validate(from, to, study_start, study_end)
+        return result
+    end
+    cur, next_pol_per, pol_t =
+        preprocess_left(from, p.pol_period, study_start, left_partials)
+    next_cal_per = floor(cur, p.cal_period) + p.cal_period
+    right_trunc = isnothing(to) ? study_end : min(study_end, to)
+    while (
+        (continued_exposure && next_pol_per - p.pol_period <= right_trunc) ||
+        (!continued_exposure && cur <= right_trunc)
+    ) && (right_partials || (next_pol_per <= study_end + Day(1)))
         if next_pol_per < next_cal_per
             push!(result, (from = cur, to = next_pol_per - Day(1), policy_timestep = pol_t))
             cur = next_pol_per
@@ -182,6 +185,7 @@ function exposure(
             cur = next_cal_per
             next_cal_per += p.cal_period
         else # next_pol_per == next_cal_per
+            push!(result, (from = cur, to = next_pol_per - Day(1), policy_timestep = pol_t))
             cur = next_pol_per
             pol_t += 1
             next_pol_per = from + pol_t * p.pol_period
@@ -189,10 +193,10 @@ function exposure(
         end
     end
 
-    if !continued_exposure
+    if !continued_exposure && !isempty(result)
         result[end] = (
             from = result[end].from,
-            to = to,
+            to = min(result[end].to, right_trunc),
             policy_timestep = result[end].policy_timestep,
         )
     end
@@ -201,11 +205,11 @@ function exposure(
 end
 
 function exposure(
-    p::Calendar, 
-    from::Date, 
+    p::Calendar,
+    from::Date,
     to::Union{Date,Nothing};
     continued_exposure::Bool = false,
-    study_start::Union{Date, Nothing} = nothing,
+    study_start::Union{Date,Nothing} = nothing,
     study_end::Date,
 )::Vector{NamedTuple{(:from, :to),Tuple{Date,Date}}}
     result = NamedTuple{(:from, :to),Tuple{Date,Date}}[]

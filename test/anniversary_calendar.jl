@@ -3,8 +3,7 @@ using Dates
 using Test
 
 pycy = ExperienceAnalysis.AnniversaryCalendar(Year(1), Year(1))
-pmcy = ExperienceAnalysis.AnniversaryCalendar(Month(1), Year(1))
-pycm = ExperienceAnalysis.AnniversaryCalendar(Year(1), Month(1))
+pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
 
 @testset "AnniversaryCalendar, left_partial and start_date" begin
     @testset "study_start > from, study_start not on anniv, left partials do exist" begin
@@ -499,7 +498,7 @@ end
         ) == [
             (from = Date(2020, 6, 1), to = Date(2020, 12, 31), policy_timestep = 1),
             (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
-            (from = Date(2022, 1, 1), to = Date(2022, 1, 2), policy_timestep = 2),
+            (from = Date(2022, 1, 1), to = Date(2022, 1, 2), policy_timestep = 3),
         ]
         @test exposure(
             pycy,
@@ -513,7 +512,7 @@ end
         ) == [
             (from = Date(2020, 6, 1), to = Date(2020, 12, 31), policy_timestep = 1),
             (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
-            (from = Date(2022, 1, 1), to = Date(2022, 12, 31), policy_timestep = 2),
+            (from = Date(2022, 1, 1), to = Date(2022, 12, 31), policy_timestep = 3),
         ]
     end
 
@@ -526,13 +525,11 @@ end
             study_end = Date(2021, 2, 5),
             left_partials = true,
             right_partials = true,
-            continued_exposure = false,
         ) == [
             (from = Date(2020, 12, 1), to = Date(2020, 12, 31), policy_timestep = 1),
             (from = Date(2021, 1, 1), to = Date(2021, 1, 31), policy_timestep = 2),
-            (from = Date(2021, 2, 1), to = Date(2021, 2, 2), policy_timestep = 2),
+            (from = Date(2021, 2, 1), to = Date(2021, 2, 2), policy_timestep = 3),
         ]
-        # right_partials=false works
         @test exposure(
             pmcm,
             Date(2020, 12, 1),
@@ -540,11 +537,12 @@ end
             study_start = Date(2020, 6, 1),
             study_end = Date(2021, 2, 5),
             left_partials = true,
-            right_partials = false,
-            continued_exposure = false,
+            right_partials = true,
+            continued_exposure = true,
         ) == [
             (from = Date(2020, 12, 1), to = Date(2020, 12, 31), policy_timestep = 1),
             (from = Date(2021, 1, 1), to = Date(2021, 1, 31), policy_timestep = 2),
+            (from = Date(2021, 2, 1), to = Date(2021, 2, 28), policy_timestep = 3),
         ]
     end
 end

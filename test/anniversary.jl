@@ -34,12 +34,12 @@ pm = ExperienceAnalysis.Anniversary(Month(1))
         @test exposure(
             py,
             Date(2020, 1, 1),
-            Date(2022, 1, 1);
+            Date(2022, 1, 1),
+            true;
             study_start = Date(2020, 1, 10),
             study_end = Date(2021, 12, 10),
             right_partials = true,
             left_partials = false,
-            continued_exposure = true,
         ) == [(from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2)]
 
         # Month(1), with left partials
@@ -73,12 +73,12 @@ pm = ExperienceAnalysis.Anniversary(Month(1))
         @test exposure(
             pm,
             Date(2020, 1, 1),
-            Date(2020, 3, 1);
+            Date(2020, 3, 1),
+            true;
             study_start = Date(2020, 1, 10),
             study_end = Date(2020, 3, 30),
             right_partials = true,
             left_partials = false,
-            continued_exposure = true,
         ) == [
             (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
             (from = Date(2020, 3, 1), to = Date(2020, 3, 31), policy_timestep = 3),
@@ -264,20 +264,20 @@ end
         @test exposure(
                   py,
                   Date(2020, 1, 1),
-                  Date(2022, 1, 1);
+                  Date(2022, 1, 1),
+                  true;
                   study_end = Date(2023, 1, 2),
                   left_partials = true,
                   right_partials = true,
-                    continued_exposure = true,
               ) ==
               exposure(
                   py,
                   Date(2020, 1, 1),
-                  Date(2022, 1, 1);
+                  Date(2022, 1, 1),
+                  true;
                   study_end = Date(2023, 1, 2),
                   left_partials = true,
                   right_partials = false,
-                    continued_exposure = true,
               ) == [
                   (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
                   (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
@@ -311,22 +311,22 @@ end
         @test exposure(
                   pm,
                   Date(2020, 1, 1),
-                  Date(2020, 3, 1);
+                  Date(2020, 3, 1),
+                  true;
                   study_start = Date(1900, 1, 1),
                   study_end = Date(2020, 3, 31),
                   left_partials = true,
                   right_partials = false,
-                    continued_exposure = true,
               ) ==
               exposure(
                   pm,
                   Date(2020, 1, 1),
-                  Date(2020, 3, 1);
+                  Date(2020, 3, 1),
+                  true;
                   study_start = Date(1900, 1, 1),
                   study_end = Date(2020, 3, 31),
                   right_partials = true,
                   left_partials = true,
-                    continued_exposure = true,
               ) ==
               [
                   (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
@@ -354,11 +354,11 @@ end
         @test exposure(
             py,
             Date(2020, 1, 1),
-            Date(2022, 1, 1);
+            Date(2022, 1, 1),
+            true;
             study_end = Date(2022, 1, 2),
             left_partials = true,
             right_partials = true,
-            continued_exposure = true,
         ) == [
             (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
             (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
@@ -377,11 +377,11 @@ end
               exposure(
                   py,
                   Date(2020, 1, 1),
-                  Date(2022, 1, 1);
+                  Date(2022, 1, 1),
+                  true;
                   study_end = Date(2022, 1, 2),
                   left_partials = true,
                   right_partials = false,
-                  continued_exposure = true,
               ) ==
               [
                   (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
@@ -406,12 +406,12 @@ end
         @test exposure(
             pm,
             Date(2020, 1, 1),
-            Date(2020, 3, 1);
+            Date(2020, 3, 1),
+            true;
             study_start = Date(1900, 1, 1),
             study_end = Date(2020, 3, 30),
             left_partials = true,
             right_partials = true,
-            continued_exposure = true,
         ) == [
             (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
             (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
@@ -430,12 +430,12 @@ end
               exposure(
                   pm,
                   Date(2020, 1, 1),
-                  Date(2020, 3, 1);
+                  Date(2020, 3, 1),
+                  true;
                   study_start = Date(1900, 1, 1),
                   study_end = Date(2020, 3, 30),
                   left_partials = true,
                   right_partials = false,
-                  continued_exposure = true,
               ) ==
               [
                   (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
@@ -461,11 +461,11 @@ end
         @test exposure(
             py,
             Date(2020, 1, 1),
-            Date(2022, 1, 1);
+            Date(2022, 1, 1),
+            true;
             study_end = Date(2022, 1, 1),
             left_partials = true,
             right_partials = true,
-            continued_exposure = true,
         ) == [
             (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
             (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
@@ -483,11 +483,11 @@ end
         exposure(
             py,
             Date(2020, 1, 1),
-            Date(2022, 1, 1);
+            Date(2022, 1, 1),
+            true;
             study_end = Date(2022, 1, 1),
             left_partials = true,
             right_partials = false,
-            continued_exposure = true,
         ) == 
         [
             (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
@@ -512,12 +512,12 @@ end
         @test exposure(
             pm,
             Date(2020, 1, 1),
-            Date(2020, 3, 1);
+            Date(2020, 3, 1),
+            true;
             study_start = Date(1900, 1, 1),
             study_end = Date(2020, 3, 1),
             left_partials = true,
             right_partials = true,
-            continued_exposure = true,
         ) == [
             (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
             (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
@@ -536,12 +536,12 @@ end
               exposure(
                   pm,
                   Date(2020, 1, 1),
-                  Date(2020, 3, 1);
+                  Date(2020, 3, 1),
+                  true;
                   study_start = Date(1900, 1, 1),
                   study_end = Date(2020, 3, 1),
                   left_partials = true,
                   right_partials = false,
-                  continued_exposure = true,
               ) ==
               [
                   (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
@@ -570,11 +570,11 @@ end
               exposure(
                   py,
                   Date(2020, 1, 1),
-                  Date(2022, 1, 1);
+                  Date(2022, 1, 1),
+                  true;
                   study_end = Date(2021, 12, 31),
                   left_partials = true,
                   right_partials = false,
-                  continued_exposure = true,
               ) ==
               [
                   (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
@@ -600,11 +600,11 @@ end
               exposure(
                   pm,
                   Date(2020, 1, 1),
-                  Date(2020, 3, 1);
+                  Date(2020, 3, 1),
+                  true;
                   study_end = Date(2020, 2, 29),
                   left_partials = true,
                   right_partials = false,
-                  continued_exposure = true,
               ) ==
               [
                   (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
@@ -687,3 +687,5 @@ end
         study_end = Date(2010, 5, 9),
     ) == []
 end
+
+

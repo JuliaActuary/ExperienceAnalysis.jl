@@ -135,25 +135,25 @@
     end
 
     @testset "continued_exposure=true" begin
-        # does not extend beyond study end
+        # continued_exposure does not extend beyond study end
         @test exposure(
             cy,
             Date(2009, 5, 10),
-            Date(2010, 6, 10);
+            Date(2010, 6, 10),
+            true;
             study_end = Date(2011, 12, 31),
-            continued_exposure = true,
         ) == [
             (from = Date(2009, 5, 10), to = Date(2009, 12, 31)),
             (from = Date(2010, 1, 1), to = Date(2010, 12, 31)),
         ]
 
-        # does extend beyond study end
+        # continued_exposure does extend beyond study end
         @test exposure(
             cy,
             Date(2009, 5, 10),
-            Date(2010, 6, 10);
+            Date(2010, 6, 10),
+            true;
             study_end = Date(2010, 11, 30),
-            continued_exposure = true,
         ) == [
             (from = Date(2009, 5, 10), to = Date(2009, 12, 31)),
             (from = Date(2010, 1, 1), to = Date(2010, 12, 31)),

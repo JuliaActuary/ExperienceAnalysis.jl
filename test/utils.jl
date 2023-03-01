@@ -23,6 +23,8 @@ end
     )
 end
 
+# TODO: add tests for nothing cases
+# TODO: test for broadcasting
 @testset "`validate` determines if policy overlaps with study period" begin
     @testset "no overlap" begin
         # study starts after policy ends

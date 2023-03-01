@@ -73,7 +73,7 @@ function validate(
     study_end::Date,
 )
     # throw errors if inputs are not good
-    from > to &&
+    !isnothing(to) && from > to &&
         throw(DomainError("from=$from argument is a later date than the to=$to argument."))
 
     !isnothing(study_start) &&
@@ -85,7 +85,7 @@ function validate(
         )
 
     # if no overlap return false, if overlap return true
-    return (isnothing(study_start) || study_start <= to) && (from <= study_end)
+    return (isnothing(study_start) || isnothing(to) || study_start <= to) && (from <= study_end)
 end
 
 """
@@ -117,12 +117,12 @@ julia> exposure(basis, issue, termination)
 function exposure(
     p::Anniversary,
     from::Date,
-    to::Union{Date,Nothing};
-    continued_exposure::Bool = false,
+    to::Union{Date,Nothing},
+    continued_exposure::Bool = false;
     study_start::Union{Date,Nothing} = nothing,
     study_end::Date,
     left_partials::Bool = false,
-    right_partials::Bool = false,
+    right_partials::Bool = true,
 )::Vector{NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}}
 
     result = NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}[]
@@ -155,12 +155,12 @@ end
 function exposure(
     p::AnniversaryCalendar,
     from::Date,
-    to::Date;
-    continued_exposure::Bool = false,
+    to::Date,
+    continued_exposure::Bool = false;
     study_start::Union{Date,Nothing} = nothing,
     study_end::Date,
     left_partials::Bool = false,
-    right_partials::Bool = false,
+    right_partials::Bool = true,
 )
     result = NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}[]
     # no overlap
@@ -207,8 +207,8 @@ end
 function exposure(
     p::Calendar,
     from::Date,
-    to::Union{Date,Nothing};
-    continued_exposure::Bool = false,
+    to::Union{Date,Nothing},
+    continued_exposure::Bool = false;
     study_start::Union{Date,Nothing} = nothing,
     study_end::Date,
 )::Vector{NamedTuple{(:from, :to),Tuple{Date,Date}}}

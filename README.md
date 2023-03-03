@@ -33,7 +33,9 @@ df.policy_year = exposure.(
 df = flatten(df, :policy_year)
 
 df.exposure_fraction =
-        map(e -> yearfrac(e.from, e.to + Day(1), DayCounts.Thirty360()), df.policy_year)
+        map(e -> yearfrac(e.from, e.to + Day(1), DayCounts.Thirty360()), df.policy_year) 
+# + Day(1) above because DayCounts has Date(2020, 1, 1) to Date(2021, 1, 1) as an exposure of 1.0
+# here we end the interval at Date(2020, 12, 31), so we need to add a day to get the correct exposure fraction.
 ```
 
 policy_id | issue_date | termination_date | status | policy_year | exposure_fraction

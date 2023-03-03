@@ -89,9 +89,18 @@ function validate(
 end
 
 """
-    exposure(ExposurePeriod,from,to,continued_exposure=false)
+    exposure(
+        p::Anniversary,
+        from::Date,
+        to::Union{Date,Nothing},
+        continued_exposure::Bool = false;
+        study_start::Union{Date,Nothing} = nothing,
+        study_end::Date,
+        left_partials::Bool = true,
+        right_partials::Bool = true,
+    )::Vector{NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}}
 
-Return an array of name tuples `(from=Date,to=Date)` of the exposure periods for the given `ExposurePeriod`s. 
+Return an array of name tuples `(from=Date,to=Date,policy_timestep=Int)` of the exposure periods for the given `ExposurePeriod`s. 
 
 If `continued_exposure` is `true`, then the final `to` date will continue through the end of the final ExposurePeriod. This is useful if you want the decrement of interest is the cause of termination, because then you want a full exposure.
 
@@ -100,17 +109,17 @@ If `continued_exposure` is `true`, then the final `to` date will continue throug
 
 ```julia
 julia> using ExperienceAnalysis,Dates
-
-julia> issue = Date(2016, 7, 4)
-julia> termination = Date(2020, 1, 17)
-julia> basis = ExperienceAnalysis.Anniversary(Year(1))
-
-julia> exposure(basis, issue, termination)
-4-element Array{NamedTuple{(:from, :to),Tuple{Date,Date}},1}:
- (from = Date("2016-07-04"), to = Date("2017-07-04"))
- (from = Date("2017-07-04"), to = Date("2018-07-04"))
- (from = Date("2018-07-04"), to = Date("2019-07-04"))
- (from = Date("2019-07-04"), to = Date("2020-01-17"))
+julia> exposure(
+    ExperienceAnalysis.Anniversary(Year(1)), # basis
+    Date(2020,5,10),                         # issue
+    Date(2022, 6, 10);                       # termination
+    study_start = Date(2020, 1, 1),
+    study_end = Date(2022, 12, 31)
+)
+3-element Vector{NamedTuple{(:from, :to, :policy_timestep), Tuple{Date, Date, Int64}}}:
+ (from = Date("2020-05-10"), to = Date("2021-05-09"), policy_timestep = 1)
+ (from = Date("2021-05-10"), to = Date("2022-05-09"), policy_timestep = 2)
+ (from = Date("2022-05-10"), to = Date("2022-06-10"), policy_timestep = 3)
 
 
 """
@@ -121,7 +130,7 @@ function exposure(
     continued_exposure::Bool = false;
     study_start::Union{Date,Nothing} = nothing,
     study_end::Date,
-    left_partials::Bool = false,
+    left_partials::Bool = true,
     right_partials::Bool = true,
 )::Vector{NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}}
 
@@ -159,7 +168,7 @@ function exposure(
     continued_exposure::Bool = false;
     study_start::Union{Date,Nothing} = nothing,
     study_end::Date,
-    left_partials::Bool = false,
+    left_partials::Bool = true,
     right_partials::Bool = true,
 )
     result = NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}[]

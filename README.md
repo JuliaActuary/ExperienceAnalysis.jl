@@ -11,213 +11,47 @@ Calculate exposures.
 
 ```julia
 using ExperienceAnalysis
+using DataFrames
 using Dates
 
-issue = Date(2016, 7, 4)
-termination = Date(2020, 1, 17)
-basis = ExperienceAnalysis.Anniversary(Year(1))
-exposure(basis, issue, termination)
-```
-This will return an array of tuples with a `from` and `to` date:
+df = DataFrame(
+    policy_id = 1:3,
+    issue_date = [Date(2020,5,10), Date(2020,4,5), Date(2019, 3, 10)],
+    termination_date = [Date(2022, 6, 10), Date(2022, 8, 10), nothing],
+    status = ["claim", "lapse", "inforce"]
+)
 
-```julia
-4-element Array{NamedTuple{(:from, :to),Tuple{Date,Date}},1}:
- (from = Date("2016-07-04"), to = Date("2017-07-04"))
- (from = Date("2017-07-04"), to = Date("2018-07-04"))
- (from = Date("2018-07-04"), to = Date("2019-07-04"))
- (from = Date("2019-07-04"), to = Date("2020-01-17"))
-```
+df.policy_year = exposure.(
+    ExperienceAnalysis.Anniversary(Year(1)),
+    df.issue_date,
+    df.termination_date,
+    df.status .== "claim"; # continued exposure
+    study_start = Date(2020, 1, 1),
+    study_end = Date(2022, 12, 31)
+)
 
-## Available Exposure Basis
+df = flatten(df, :policy_year)
 
-- `ExperienceAnalysis.Anniversary(period)` will give exposures periods based on the first date
-- `ExperienceAnalysis.Calendar(period)` will follow calendar periods (e.g. month or year)
-- `ExperienceAnalysis.AnniversaryCalendar(period,period)` will split into the smaller of the calendar or policy anniversary period.
-
-Where `period` is a [Period Type from the Dates standard library](https://docs.julialang.org/en/v1/stdlib/Dates/#Period-Types).
-
-Calculate exposures with `exposures(basis,from,to,continue_exposure)`. 
-
-- `continue_exposures` indicates whether the exposure should be extended through the full exposure period rather than terminate at the `to` date.
-
-## Full Example
-
-
-We'll start with this as our data:
-```julia
-julia> df
-
-3×4 DataFrame
-│ Row │ id     │ issue      │ termination │ status  │
-│     │ String │ Date       │ Date?       │ String  │
-├─────┼────────┼────────────┼─────────────┼─────────┤
-│ 1   │ 1      │ 2016-07-04 │ 2020-01-17  │ Claim   │
-│ 2   │ 2      │ 2016-01-01 │ 2018-05-04  │ Lapse   │
-│ 3   │ 3      │ 2016-01-01 │ missing     │ Inforce │
+df.exposure_fraction =
+        map(e -> yearfrac(e.from, e.to + Day(1), DayCounts.Thirty360()), df.policy_year)
 ```
 
-Define the study end:
-
-```julia
-study_end = Date(2020,12,31)
-```
-
-Next, we do two things by iterating over and creating a new array of dates:
-
-1. Handle the `missing` case by letting the `to` reflect the `study_end`
-2. Cap the ending date at the `study_end`. This doesn't come into play in this example, but it's included for demonstration purposes.
-
-```julia
-to = [ismissing(d) ? study_end : min(study_end,d) for d in df.termination]
-```
-
-Calculate the exposure by [broadcasting](https://docs.julialang.org/en/v1/manual/mathematical-operations/#man-dot-operators) the exposure function over the three arrays we are passing to it: 
-
-```julia
-df.exposure = exposure.(
-    ExperienceAnalysis.Anniversary(Year(1)),   # The basis for our exposures
-    df.issue,                             # The `from` date
-    to                                    # the `to` date array we created above
-    )
-```
-
-In our dataframe, we actually have a column that contains an array of tuples now, so to expand it so that each exposure period gets a row, we `flatten` the dataframe:
-
-```julia
-df = flatten(df,:exposure)
-```
-
-So now we have our exposures:
-
-```julia
-│ id     │ issue      │ termination │ status  │ exposure                                             │
-│ String │ Date       │ Date?       │ String  │ NamedTuple{(:from, :to),Tuple{Date,Date}}            │
-┼────────┼────────────┼─────────────┼─────────┼──────────────────────────────────────────────────────┼
-│ 1      │ 2016-07-04 │ 2020-01-17  │ Claim   │ (from = Date("2016-07-04"), to = Date("2017-07-04")) │
-│ 1      │ 2016-07-04 │ 2020-01-17  │ Claim   │ (from = Date("2017-07-04"), to = Date("2018-07-04")) │
-│ 1      │ 2016-07-04 │ 2020-01-17  │ Claim   │ (from = Date("2018-07-04"), to = Date("2019-07-04")) │
-│ 1      │ 2016-07-04 │ 2020-01-17  │ Claim   │ (from = Date("2019-07-04"), to = Date("2020-01-17")) │
-│ 2      │ 2016-01-01 │ 2018-05-04  │ Lapse   │ (from = Date("2016-01-01"), to = Date("2017-01-01")) │
-│ 2      │ 2016-01-01 │ 2018-05-04  │ Lapse   │ (from = Date("2017-01-01"), to = Date("2018-01-01")) │
-│ 2      │ 2016-01-01 │ 2018-05-04  │ Lapse   │ (from = Date("2018-01-01"), to = Date("2018-05-04")) │
-│ 3      │ 2016-01-01 │ missing     │ Inforce │ (from = Date("2016-01-01"), to = Date("2017-01-01")) │
-│ 3      │ 2016-01-01 │ missing     │ Inforce │ (from = Date("2017-01-01"), to = Date("2018-01-01")) │
-│ 3      │ 2016-01-01 │ missing     │ Inforce │ (from = Date("2018-01-01"), to = Date("2019-01-01")) │
-│ 3      │ 2016-01-01 │ missing     │ Inforce │ (from = Date("2019-01-01"), to = Date("2020-01-01")) │
-│ 3      │ 2016-01-01 │ missing     │ Inforce │ (from = Date("2020-01-01"), to = Date("2020-12-31")) │
-```
-
-
-### Exposure Fraction
-This can be extended to calculate the decimal fraction of the year under different day count conventions, such as assuming 30/360 or Actual/365, etc. using the [`DayCounts.jl` package](https://github.com/JuliaFinance/DayCounts.jl).
-
-```julia
-using DayCounts
-
-df.exposure_fraction = map(e -> yearfrac(e.from,e.to,DayCounts.Actual360()),df.exposure)
-```
-
-So now we have:
-
-```julia
-│ exposure                                             │ exposure_fraction │
-│ NamedTuple{(:from, :to),Tuple{Date,Date}}            │ Float64           │
-┼──────────────────────────────────────────────────────┼───────────────────┤
-│ (from = Date("2016-07-04"), to = Date("2017-07-04")) │ 1.01389           │
-│ (from = Date("2017-07-04"), to = Date("2018-07-04")) │ 1.01389           │
-│ (from = Date("2018-07-04"), to = Date("2019-07-04")) │ 1.01389           │
-│ (from = Date("2019-07-04"), to = Date("2020-07-04")) │ 0.54722           │
-│ (from = Date("2016-01-01"), to = Date("2017-01-01")) │ 1.01667           │
-│ (from = Date("2017-01-01"), to = Date("2018-01-01")) │ 1.01389           │
-│ (from = Date("2018-01-01"), to = Date("2018-05-04")) │ 0.34167           │
-│ (from = Date("2016-01-01"), to = Date("2017-01-01")) │ 1.01667           │
-│ (from = Date("2017-01-01"), to = Date("2018-01-01")) │ 1.01389           │
-│ (from = Date("2018-01-01"), to = Date("2019-01-01")) │ 1.01389           │
-│ (from = Date("2019-01-01"), to = Date("2020-01-01")) │ 1.01389           │
-│ (from = Date("2020-01-01"), to = Date("2020-12-31")) │ 1.01389           │
-```
-
-### Continued Exposure
-
-To get the proper exposure for the termination type under consideration, `exposure` takes an optional fourth argument which will continue the exposure until the end of what would be the period notwithstanding the termination.
-
-Extending the above analysis, we want a full exposure period for any `"Claim"` in this case:
-
-```julia
-continue_exposure = df.status .== "Claim"
-
-df.exposure = exposure.(
-    ExperienceAnalysis.Anniversary(Year(1)),   # The basis for our exposures
-    df.issue,                             # The `from` date
-    to,                                   # the `to` date array we created above
-    continue_exposure                     # full exposure or not (true/false)
-    )
-```
-
-And then the exposures look like the following. Note the difference in the fourth row:
-
-```julia
-│ exposure                                             │ exposure_fraction │
-│ NamedTuple{(:from, :to),Tuple{Date,Date}}            │ Float64           │
-┼──────────────────────────────────────────────────────┼───────────────────┤
-│ (from = Date("2016-07-04"), to = Date("2017-07-04")) │ 1.01389           │
-│ (from = Date("2017-07-04"), to = Date("2018-07-04")) │ 1.01389           │
-│ (from = Date("2018-07-04"), to = Date("2019-07-04")) │ 1.01389           │
-│ (from = Date("2019-07-04"), to = Date("2020-07-04")) │ 1.01667           │
-│ (from = Date("2016-01-01"), to = Date("2017-01-01")) │ 1.01667           │
-│ (from = Date("2017-01-01"), to = Date("2018-01-01")) │ 1.01389           │
-│ (from = Date("2018-01-01"), to = Date("2018-05-04")) │ 0.341667          │
-│ (from = Date("2016-01-01"), to = Date("2017-01-01")) │ 1.01667           │
-│ (from = Date("2017-01-01"), to = Date("2018-01-01")) │ 1.01389           │
-│ (from = Date("2018-01-01"), to = Date("2019-01-01")) │ 1.01389           │
-│ (from = Date("2019-01-01"), to = Date("2020-01-01")) │ 1.01389           │
-│ (from = Date("2020-01-01"), to = Date("2020-12-31")) │ 1.01389           │
-```
-
-### Study End/Start dates
-
-The examples above already incorporated the study end date. However, the study start date must be truncated as a post-processing step. This is because the `to` argument to the `exposure(...)` function defines the anchor point for the policy anniversary iteration. If the `to` was the study start date, then the anniversaries would follow that calendar date.
-
-To truncate the exposures, you would need to drop/update exposures. Continuing the example above:
-
-```julia
-study_start = Date(2017,1,1)
-
-# drop rows where the whole expsoure is before the study_start
-df_truncated = filter(row -> row.exposure.to >= study_start,df)
-
-# update the `from` where remaining exposures start before the study_start
-df_truncated.exposure = map(e -> (from = max(study_start,e.from),to = e.to), df_truncated.exposure)
-```
-
-And then `df_truncated` contains:
-
-```julia
-│ exposure                                             │
-│ NamedTuple{(:from, :to),Tuple{Date,Date}}            │
-┼──────────────────────────────────────────────────────┼
-│ (from = Date("2017-01-01"), to = Date("2017-07-04")) │
-│ (from = Date("2017-07-04"), to = Date("2018-07-04")) │
-│ (from = Date("2018-07-04"), to = Date("2019-07-04")) │
-│ (from = Date("2019-07-04"), to = Date("2020-07-04")) │
-│ (from = Date("2017-01-01"), to = Date("2017-01-01")) │
-│ (from = Date("2017-01-01"), to = Date("2018-01-01")) │
-│ (from = Date("2018-01-01"), to = Date("2018-05-04")) │
-│ (from = Date("2017-01-01"), to = Date("2017-01-01")) │
-│ (from = Date("2017-01-01"), to = Date("2018-01-01")) │
-│ (from = Date("2018-01-01"), to = Date("2019-01-01")) │
-│ (from = Date("2019-01-01"), to = Date("2020-01-01")) │
-│ (from = Date("2020-01-01"), to = Date("2020-12-31")) │
-```
-
-Last item to note is that you need to recalculate the `exposure_fraction` as it currently reflects the pre-truncated values. When actually building a process, you could truncate before calculating the fraction to begin with.
-
+policy_id | issue_date | termination_date | status | policy_year | exposure_fraction
+--- | --- | --- | --- | --- | ---
+1 | 2020-05-10 | 2022-06-10 | claim | (from = Date("2020-05-10"), to = Date("2021-05-09"), policy_timestep = 1)  | 1.0
+1 | 2020-05-10 | 2022-06-10 | claim | (from = Date("2021-05-10"), to = Date("2022-05-09"), policy_timestep = 2)  | 1.0
+1 | 2020-05-10 | 2022-06-10 | claim | (from = Date("2022-05-10"), to = Date("2023-05-09"), policy_timestep = 3)  | 1.0
+2 | 2020-04-05 | 2022-08-10 | lapse | (from = Date("2020-04-05"), to = Date("2021-04-04"), policy_timestep = 1)  | 1.0
+2 | 2020-04-05 | 2022-08-10 | lapse | (from = Date("2021-04-05"), to = Date("2022-04-04"), policy_timestep = 2)  | 1.0
+2 | 2020-04-05 | 2022-08-10 | lapse | (from = Date("2022-04-05"), to = Date("2022-08-10"), policy_timestep = 3)  | 0.35
+3 | 2019-03-10 |  | inforce | (from = Date("2020-01-01"), to = Date("2020-03-09"), policy_timestep = 1)  | 0.191667
+3 | 2019-03-10 |  | inforce | (from = Date("2020-03-10"), to = Date("2021-03-09"), policy_timestep = 2)  | 1.0
+3 | 2019-03-10 |  | inforce | (from = Date("2021-03-10"), to = Date("2022-03-09"), policy_timestep = 3)  | 1.0
+3 | 2019-03-10 |  | inforce | (from = Date("2022-03-10"), to = Date("2022-12-31"), policy_timestep = 4)  | 0.808333
 
 ## Discussion and Questions
 
 If you have other ideas or questions, feel free to also open an issue, or discuss on the community [Zulip](https://julialang.zulipchat.com/#narrow/stream/249536-actuary) or [Slack #actuary channel](https://slackinvite.julialang.org/). We welcome all actuarial and related disciplines!
-
-## Endnotes
 
 ### References
 
@@ -225,4 +59,163 @@ If you have other ideas or questions, feel free to also open an issue, or discus
 
 ### Related Packages
 
-- [expstudies](https://github.com/MatthewCaseres/expstudies), an R package
+- [actxps](https://github.com/mattheaphy/actxps/), an R package
+
+# API
+
+The exposure function has the following type signature for Anniversary exposures:
+
+```julia
+function exposure(
+    p::Anniversary,
+    from::Date,
+    to::Union{Date,Nothing},
+    continued_exposure::Bool = false;
+    study_start::Union{Date,Nothing} = nothing,
+    study_end::Date,
+    left_partials::Bool = false,
+    right_partials::Bool = true,
+)::Vector{NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}}
+```
+
+## p, Exposure Basis
+
+### Anniversary
+
+`ExperienceAnalysis.Anniversary(DatePeriod)` will give exposures periods based on the first date. Exposure intervals will fall on annniversaries, `start_date + t * dateperiod`.
+`DatePeriod` is a [DatePeriod Type from the Dates standard library](https://github.com/JuliaLang/julia/blob/master/stdlib/Dates/src/types.jl#L35).
+
+```julia
+exposure(
+    ExperienceAnalysis.Anniversary(Year(1)), # basis
+    Date(2020,5,10),                         # from
+    Date(2022, 6, 10);                       # to
+    study_start = Date(2020, 1, 1),
+    study_end = Date(2022, 12, 31)
+)
+# returns
+# 3-element Vector{NamedTuple{(:from, :to, :policy_timestep), Tuple{Date, Date, Int64}}}:
+#  (from = Date("2020-05-10"), to = Date("2021-05-09"), policy_timestep = 1)
+#  (from = Date("2021-05-10"), to = Date("2022-05-09"), policy_timestep = 2)
+#  (from = Date("2022-05-10"), to = Date("2022-06-10"), policy_timestep = 3)
+```
+
+### Calendar
+
+`ExperienceAnalysis.Calendar(DatePeriod)` will follow calendar periods (e.g. month or year). Quarterly exposures can be created with `Month(3)`, the number of months should divide 12.
+
+```julia
+exposure(
+    ExperienceAnalysis.Calendar(Year(1)), # basis
+    Date(2020,5,10),                      # from
+    Date(2022, 6, 10);                    # to
+    study_start = Date(2020, 1, 1),
+    study_end = Date(2022, 12, 31)
+)
+# returns
+# 3-element Vector{NamedTuple{(:from, :to), Tuple{Date, Date}}}:
+#  (from = Date("2020-05-10"), to = Date("2020-12-31"))
+#  (from = Date("2021-01-01"), to = Date("2021-12-31"))
+#  (from = Date("2022-01-01"), to = Date("2022-06-10"))
+```
+
+### AnniversaryCalendar
+
+`ExperienceAnalysis.AnniversaryCalendar(DatePeriod,DatePeriod)` will split into the smaller of the calendar or policy anniversary period. We can ensure that each exposure interval entirely falls within a single calendar year.
+
+```julia
+exposure(
+    ExperienceAnalysis.AnniversaryCalendar(Year(1), Year(1)), # basis
+    Date(2020,5,10),                                          # from
+    Date(2022, 6, 10);                                        # to
+    study_start = Date(2020, 1, 1),
+    study_end = Date(2022, 12, 31)
+)
+# returns
+# 5-element Vector{NamedTuple{(:from, :to, :policy_timestep), Tuple{Date, Date, Int64}}}:
+#  (from = Date("2020-05-10"), to = Date("2020-12-31"), policy_timestep = 1)
+#  (from = Date("2021-01-01"), to = Date("2021-05-09"), policy_timestep = 1)
+#  (from = Date("2021-05-10"), to = Date("2021-12-31"), policy_timestep = 2)
+#  (from = Date("2022-01-01"), to = Date("2022-05-09"), policy_timestep = 2)
+#  (from = Date("2022-05-10"), to = Date("2022-06-10"), policy_timestep = 3)
+
+```
+
+## `from`, `to`, `study_start`, `study_end`
+
+* `from` is the date the policy was issued
+* `to` is the date the policy was terminated, or `nothing` if the policy is still in-force
+* `study_start` is the start of the study period, or `nothing` if the study period is unbounded on the left
+* `study_end` is the end of the study period
+
+`from` and `study_end` are required to be `Date` types. `to` and `study_start` can be `Date` or `nothing`.
+
+## `continued_exposure`
+
+When doing a lapse study, lapsed policies will be given a full year of exposure in the policy year of the lapse. This is accomplished by setting `continued_exposure = true`. `continued_exposure` is not a keyword argument so that it can support broadcasting.
+
+The continued exposure may extend beyond the end of the study.
+
+```julia
+exposure(
+    ExperienceAnalysis.AnniversaryCalendar(Year(1), Year(1)), # basis
+    Date(2020,5,10),                                          # from
+    Date(2022, 6, 10),                                        # to
+    true;                                                     # continued_exposure
+    study_start = Date(2020, 1, 1),
+    study_end = Date(2022, 12, 31)
+)
+# returns
+# 6-element Vector{NamedTuple{(:from, :to, :policy_timestep), Tuple{Date, Date, Int64}}}:
+#  (from = Date("2020-05-10"), to = Date("2020-12-31"), policy_timestep = 1)
+#  (from = Date("2021-01-01"), to = Date("2021-05-09"), policy_timestep = 1)
+#  (from = Date("2021-05-10"), to = Date("2021-12-31"), policy_timestep = 2)
+#  (from = Date("2022-01-01"), to = Date("2022-05-09"), policy_timestep = 2)
+#  (from = Date("2022-05-10"), to = Date("2022-12-31"), policy_timestep = 3)
+#  (from = Date("2023-01-01"), to = Date("2023-05-09"), policy_timestep = 3) # this is the continued exposure
+```
+
+## `left_partials` and `right_partials`
+
+Assumptions like lapse rates can have uneven distributions within policy years, so we may only want to look at full policy years. This can be accomplished by setting `left_partials = false` and `right_partials = false`.
+
+See that by default there are partial exposures at the beginning and end of the study period.
+
+```julia
+exposure(
+    ExperienceAnalysis.Anniversary(Year(1)), # basis
+    Date(2019,5,10),                         # from
+    Date(2022, 6, 10);                       # to
+    study_start = Date(2020, 1, 1),
+    study_end = Date(2021, 12, 31)
+)
+
+# returns
+# 3-element Vector{NamedTuple{(:from, :to, :policy_timestep), Tuple{Date, Date, Int64}}}:
+#  (from = Date("2020-01-01"), to = Date("2020-05-09"), policy_timestep = 1)
+#  (from = Date("2020-05-10"), to = Date("2021-05-09"), policy_timestep = 2)
+#  (from = Date("2021-05-10"), to = Date("2021-12-31"), policy_timestep = 3)
+```
+
+But we can remove these partial exposures by setting `left_partials = false` and `right_partials = false`.
+
+```julia
+exposure(
+    ExperienceAnalysis.Anniversary(Year(1)), # basis
+    Date(2019,5,10),                         # from
+    Date(2022, 6, 10);                       # to
+    study_start = Date(2020, 1, 1),
+    study_end = Date(2021, 12, 31),
+    left_partials = false,
+    right_partials = false
+)
+# returns
+# 1-element Vector{NamedTuple{(:from, :to, :policy_timestep), Tuple{Date, Date, Int64}}}:
+#  (from = Date("2020-05-10"), to = Date("2021-05-09"), policy_timestep = 2)
+```
+
+`Calendar` basis does not have `left_partials` and `right_partials` because the same effect can always be achieved by setting `study_start` and `study_end`.
+
+
+
+

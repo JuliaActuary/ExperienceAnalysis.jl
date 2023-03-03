@@ -2,10 +2,6 @@ using ExperienceAnalysis
 using Dates
 using Test
 
-@testset "process_left" begin
-
-end
-
 @testset "`validate` throws errors on malformed data" begin
     # from > to
     @test_throws DomainError ExperienceAnalysis.validate(
@@ -24,7 +20,6 @@ end
 end
 
 # TODO: add tests for nothing cases
-# TODO: test for broadcasting
 @testset "`validate` determines if policy overlaps with study period" begin
     @testset "no overlap" begin
         # study starts after policy ends
@@ -49,6 +44,22 @@ end
             Date(2016, 7, 31),
             nothing,
             Date(2016, 6, 3),
+        )
+
+        # study_start and `to` are both nothing, there is overlap
+        @test ExperienceAnalysis.validate(
+            Date(2016, 7, 4),
+            nothing,
+            nothing,
+            Date(2016, 7, 4),
+        )
+
+        # study_start and `to` are both nothing, there is no overlap
+        @test !ExperienceAnalysis.validate(
+            Date(2016, 7, 4),
+            nothing,
+            nothing,
+            Date(2016, 7, 3),
         )
     end
 

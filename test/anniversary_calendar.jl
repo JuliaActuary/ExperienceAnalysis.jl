@@ -24,7 +24,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
         @test exposure(
             pycy,
             Date(2020, 1, 2),
-            Date(2022, 1, 2),
+            Date(2021, 1, 2),
             true;
             study_start = Date(2020, 1, 10),
             study_end = Date(2021, 12, 10),
@@ -50,7 +50,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
         @test exposure(
             pycy,
             Date(2020, 1, 2),
-            Date(2022, 1, 2),
+            Date(2021, 1, 2),
             true;
             study_start = Date(2020, 1, 10),
             study_end = Date(2021, 12, 10),
@@ -88,7 +88,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
     @test exposure(
               pycy,
               Date(2020, 1, 2),
-              Date(2022, 1, 2),
+              Date(2021, 1, 2),
               true;
               study_start = Date(2021, 1, 2),
               study_end = Date(2021, 12, 10),
@@ -98,7 +98,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
           exposure(
               pycy,
               Date(2020, 1, 2),
-              Date(2022, 1, 2),
+              Date(2021, 1, 2),
               true;
               study_start = Date(2021, 1, 2),
               study_end = Date(2021, 12, 10),
@@ -138,7 +138,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
         @test exposure(
                   pycy,
                   Date(2020, 1, 2),
-                  Date(2022, 1, 2),
+                  Date(2021, 1, 2),
                   true;
                   study_start = Date(1900, 1, 1),
                   study_end = Date(2021, 12, 10),
@@ -148,7 +148,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
               exposure(
                   pycy,
                   Date(2020, 1, 2),
-                  Date(2022, 1, 2),
+                  Date(2021, 1, 2),
                   true;
                   study_start = Date(1900, 1, 1),
                   study_end = Date(2021, 12, 10),
@@ -192,7 +192,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
         @test exposure(
                   pycy,
                   Date(2020, 1, 2),
-                  Date(2022, 1, 2),
+                  Date(2021, 1, 2),
                   true;
                   study_start = Date(2020, 1, 2),
                   study_end = Date(2021, 12, 10),
@@ -202,7 +202,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
               exposure(
                   pycy,
                   Date(2020, 1, 2),
-                  Date(2022, 1, 2),
+                  Date(2021, 1, 2),
                   true;
                   study_start = Date(2020, 1, 2),
                   study_end = Date(2021, 12, 10),
@@ -341,7 +341,7 @@ end
             Date(2021, 1, 2),
             Date(2022, 1, 2),
             true;
-            study_end = Date(2022, 1, 2),
+            study_end = Date(2022, 12, 31),
             left_partials = true,
             right_partials = true,
         ) == [

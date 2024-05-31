@@ -134,6 +134,7 @@ function exposure(
     right_partials::Bool = true,
 )::Vector{NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}}
 
+    continued_exposure = continued_exposure && to <= study_end
     result = NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}[]
     # no overlap
     if !validate(from, to, study_start, study_end)
@@ -171,6 +172,7 @@ function exposure(
     left_partials::Bool = true,
     right_partials::Bool = true,
 )
+    continued_exposure = continued_exposure && to <= study_end
     result = NamedTuple{(:from, :to, :policy_timestep),Tuple{Date,Date,Int}}[]
     # no overlap
     if !validate(from, to, study_start, study_end)
@@ -221,6 +223,7 @@ function exposure(
     study_start::Union{Date,Nothing} = nothing,
     study_end::Date,
 )::Vector{NamedTuple{(:from, :to),Tuple{Date,Date}}}
+    continued_exposure = continued_exposure && to <= study_end
     result = NamedTuple{(:from, :to),Tuple{Date,Date}}[]
     # no overlap
     if !validate(from, to, study_start, study_end)

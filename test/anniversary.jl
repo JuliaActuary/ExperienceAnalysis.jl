@@ -34,7 +34,7 @@ pm = ExperienceAnalysis.Anniversary(Month(1))
         @test exposure(
             py,
             Date(2020, 1, 1),
-            Date(2022, 1, 1),
+            Date(2021, 1, 1),
             true;
             study_start = Date(2020, 1, 10),
             study_end = Date(2021, 12, 10),

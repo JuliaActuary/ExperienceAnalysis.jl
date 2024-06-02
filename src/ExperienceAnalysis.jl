@@ -85,11 +85,11 @@ julia> exposure(
 """
 function exposure(
     p::AnniversaryCalendar,
-    from,
-    to,
+    from::Date,
+    to::Date,
     continued_exposure=false;
-    study_start=typemin(from),
-    study_end=typemax(from),
+    study_start::Date=typemin(from),
+    study_end::Date=typemax(from),
     left_partials::Bool=true,
     right_partials::Bool=true,
 )

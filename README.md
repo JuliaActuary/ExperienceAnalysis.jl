@@ -221,29 +221,34 @@ exposure(
 
 Principles:
 
-- An exposure means a unit exposed to a particular decrement for an interval of time
+- An exposure means a unit exposed to a particular decrement for an interval of time and that the risk *entered into that interval* exposed to that risk.
 - When the decrement of interest occurs during an exposure interval, the exposure continues to the end of the *current* interval.
-- Calculating an `AnniversaryCalendar(Year(1),Year(1))` is different than splitting an `Anniversary(Year(1))` or `Calendar(Year(1))` basis due to the prior bullet point. That is, *current* interval `AnniversaryCalendar(Year(1),Year(1))` will tend to end sooner than the latter two because the former is by defnition split into two periods.
+- Calculating an `AnniversaryCalendar(Year(1),Year(1))` is different than splitting an `Anniversary(Year(1))` or `Calendar(Year(1))` basis due to the prior two bullet points. Two implications of this:
+  - Exposures with `AnniversaryCalendar(Year(1),Year(1))` will tend to end sooner than the latter two because the former is by defnition split into two periods.
+    - This is illustrated by `e2` and `e3` being the same or longer exposures than `e1` in the example below.
+  - If you take a `Calendar(Year(1))`/`Anniversary(Year(1))` exposure basis and split it into two pieces split by Anniversary / Calendar breakpoints, you need to take into account that in the latter pieces of exposure the expected claims needs to be reduced by the surviving exposures from the prior interval.
+    - This is saying that if you were to divide the last interval in `e3` into two parts, split by the anniversary date, that the second part of that exposure needs to take into account that not all lives in force on `2012-01-01` would survive past the anniversary that splits the interval. Pretend we actually know that the decrement should be `0.01` per day. Then the expected number of claims over the `(from = Date("2012-01-01"), to = Date("2012-12-31"), policy_timestep = missing)` exposure is `1 - 0.99^366 = 0.97474`. If we split the interval and did not take into account the reduced lives entering in the second part of the split exposure, then we would have `1- 0.99 ^191 + 1 - 0.99^175 = 1.6811` expected claims. To correct for this, the second term needs to be adjusted for the amount suriving from the first.
+    - It is for this reason that ExperienceAnalyis.jl does not currently provide a way to "split" a `Calendar`/`Anniversary` exposure basis.
 
 Example: Issue: 2011-07-10, death = 2012-06-15, decrement of interest: death
+
 ```julia-repl
-julia> exposure(ExperienceAnalysis.AnniversaryCalendar(Year(1),Year(1)),Date(2011,07,10),Date(2012,06,15),true)
+julia> e1 = exposure(ExperienceAnalysis.AnniversaryCalendar(Year(1),Year(1)),Date(2011,07,10),Date(2012,06,15),true)
 2-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Int64}}:
  (from = Date("2011-07-10"), to = Date("2011-12-31"), policy_timestep = 1)
  (from = Date("2012-01-01"), to = Date("2012-07-09"), policy_timestep = 1)
 
-julia> exposure(ExperienceAnalysis.Anniversary(Year(1)),Date(2011,07,10),Date(2012,06,15),true)
-2-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Missing}}:
- (from = Date("2011-07-10"), to = Date("2011-12-31"), policy_timestep = missing)
- (from = Date("2012-01-01"), to = Date("2012-12-31"), policy_timestep = missing)
-
-julia> exposure(ExperienceAnalysis.Calendar(Year(1)),Date(2011,07,10),Date(2012,06,15),true)
-2-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Missing}}:
- (from = Date("2011-07-10"), to = Date("2011-12-31"), policy_timestep = missing)
- (from = Date("2012-01-01"), to = Date("2012-12-31"), policy_timestep = missing)
-
-julia> exposure(ExperienceAnalysis.Anniversary(Year(1)),Date(2011,07,10),Date(2012,06,15),true)
+julia> e2 = exposure(ExperienceAnalysis.Anniversary(Year(1)),Date(2011,07,10),Date(2012,06,15),true)
 1-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Int64}}:
  (from = Date("2011-07-10"), to = Date("2012-07-09"), policy_timestep = 1)
+
+julia> e3 = exposure(ExperienceAnalysis.Calendar(Year(1)),Date(2011,07,10),Date(2012,06,15),true)
+2-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Missing}}:
+ (from = Date("2011-07-10"), to = Date("2011-12-31"), policy_timestep = missing)
+ (from = Date("2012-01-01"), to = Date("2012-12-31"), policy_timestep = missing)
  ```
+
+> Exposures with `AnniversaryCalendar(Year(1),Year(1))` will tend to end sooner than the latter two because the former is by defnition split into two periods.
+
+
 

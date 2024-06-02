@@ -219,5 +219,31 @@ exposure(
 `Calendar` basis does not have `left_partials` and `right_partials` because the same effect can always be achieved by setting `study_start` and `study_end`.
 
 
+Principles:
 
+- An exposure means a unit exposed to a particular decrement for an interval of time
+- When the decrement of interest occurs during an exposure interval, the exposure continues to the end of the *current* interval.
+- Calculating an `AnniversaryCalendar(Year(1),Year(1))` is different than splitting an `Anniversary(Year(1))` or `Calendar(Year(1))` basis due to the prior bullet point. That is, *current* interval `AnniversaryCalendar(Year(1),Year(1))` will tend to end sooner than the latter two because the former is by defnition split into two periods.
+
+Example: Issue: 2011-07-10, death = 2012-06-15, decrement of interest: death
+```julia-repl
+julia> exposure(ExperienceAnalysis.AnniversaryCalendar(Year(1),Year(1)),Date(2011,07,10),Date(2012,06,15),true)
+2-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Int64}}:
+ (from = Date("2011-07-10"), to = Date("2011-12-31"), policy_timestep = 1)
+ (from = Date("2012-01-01"), to = Date("2012-07-09"), policy_timestep = 1)
+
+julia> exposure(ExperienceAnalysis.Anniversary(Year(1)),Date(2011,07,10),Date(2012,06,15),true)
+2-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Missing}}:
+ (from = Date("2011-07-10"), to = Date("2011-12-31"), policy_timestep = missing)
+ (from = Date("2012-01-01"), to = Date("2012-12-31"), policy_timestep = missing)
+
+julia> exposure(ExperienceAnalysis.Calendar(Year(1)),Date(2011,07,10),Date(2012,06,15),true)
+2-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Missing}}:
+ (from = Date("2011-07-10"), to = Date("2011-12-31"), policy_timestep = missing)
+ (from = Date("2012-01-01"), to = Date("2012-12-31"), policy_timestep = missing)
+
+julia> exposure(ExperienceAnalysis.Anniversary(Year(1)),Date(2011,07,10),Date(2012,06,15),true)
+1-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Int64}}:
+ (from = Date("2011-07-10"), to = Date("2012-07-09"), policy_timestep = 1)
+ ```
 

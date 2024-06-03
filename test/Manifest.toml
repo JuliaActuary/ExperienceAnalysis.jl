@@ -2,7 +2,7 @@
 
 julia_version = "1.10.3"
 manifest_format = "2.0"
-project_hash = "9e82dcb562550309c5e79d35715d8429881e7838"
+project_hash = "17c23e05a08bac1418749706452b0d2536246496"
 
 [[deps.AliasTables]]
 deps = ["PtrArrays", "Random"]
@@ -121,12 +121,6 @@ deps = ["Calculus", "NaNMath", "SpecialFunctions"]
 git-tree-sha1 = "5837a837389fccf076445fce071c8ddaea35a566"
 uuid = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
 version = "0.6.8"
-
-[[deps.ExperienceAnalysis]]
-deps = ["Dates"]
-git-tree-sha1 = "250610322b34c6b18e1632d628797f92972b1178"
-uuid = "51cd30ab-a913-41ff-9b6f-9b78880a2ac2"
-version = "1.1.0"
 
 [[deps.FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
@@ -494,6 +488,10 @@ version = "1.11.1"
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 version = "1.10.0"
+
+[[deps.Test]]
+deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
+uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]

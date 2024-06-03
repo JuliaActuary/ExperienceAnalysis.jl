@@ -39,7 +39,7 @@ end
         )
 
         # study_start is nothing and there is no overlap
-        @test !ExperienceAnalysis.validate(
+        @test_throws MethodError ExperienceAnalysis.validate(
             Date(2016, 7, 4),
             Date(2016, 7, 31),
             nothing,
@@ -47,7 +47,7 @@ end
         )
 
         # study_start and `to` are both nothing, there is overlap
-        @test ExperienceAnalysis.validate(
+        @test_throws MethodError ExperienceAnalysis.validate(
             Date(2016, 7, 4),
             nothing,
             nothing,
@@ -55,7 +55,7 @@ end
         )
 
         # study_start and `to` are both nothing, there is no overlap
-        @test !ExperienceAnalysis.validate(
+        @test_throws MethodError ExperienceAnalysis.validate(
             Date(2016, 7, 4),
             nothing,
             nothing,
@@ -65,7 +65,7 @@ end
 
     @testset "overlap" begin
         # study_start is nothing and there is overlap
-        @test ExperienceAnalysis.validate(
+        @test_throws MethodError ExperienceAnalysis.validate(
             Date(2016, 7, 4),
             Date(2016, 7, 31),
             nothing,

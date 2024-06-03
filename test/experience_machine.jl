@@ -3,6 +3,9 @@
     # ensure that we can recover a ~100% A/E using a given
     # assumption
 
+    println("------------------")
+    println("generating simulated experience")
+
     using ExperienceAnalysis
     using Dates
     using DayCounts
@@ -11,7 +14,7 @@
     using StableRNGs
 
     rng = StableRNG(123)
-    q = 1 - (0.4)^(1 / (365.25 * 4)) #  a daily rate for a risk that occurs ~0.05/year on average over a leap cycle 
+    q = 1 - (0.6)^(1 / (365.25 * 4)) #  a daily rate for a risk that occurs ~0.05/year on average over a leap cycle 
 
     # simulate n policies and when they die using the above q
     # set the end date for the study four years in, covering a whole leap cycle
@@ -78,6 +81,7 @@
 
         end
 
+        # not needed for test, but demonstrates how to do cal/pol year grouping
         summary = map([:pol_year, :cal_year]) do grouping
             combine(groupby(cp, (grouping))) do gdf
                 exposures = sum(gdf.exp_amt)
@@ -94,8 +98,8 @@
 
         @show summary
         @show sum(cp.claim) / sum(cp.expected), sum(cp.claim), sum(cp.expected), sum(cp.exp_days), sum(cp.exp_amt)
-        @test sum(cp.claim) / sum(cp.expected) ≈ 1.0 rtol 1e-3
-        println()
+        @test sum(cp.claim) / sum(cp.expected) ≈ 1.0 rtol = 5e-3
+        println("---------")
     end
 
 

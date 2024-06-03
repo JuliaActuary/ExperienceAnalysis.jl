@@ -219,7 +219,7 @@ exposure(
 `Calendar` basis does not have `left_partials` and `right_partials` because the same effect can always be achieved by setting `study_start` and `study_end`.
 
 
-Principles:
+## Principles
 
 - An exposure means a unit exposed to a particular decrement for an interval of time and that the risk *entered into that interval* exposed to that risk.
 - When the decrement of interest occurs during an exposure interval, the exposure continues to the end of the *current* interval.
@@ -248,7 +248,39 @@ julia> e3 = exposure(ExperienceAnalysis.Calendar(Year(1)),Date(2011,07,10),Date(
  (from = Date("2012-01-01"), to = Date("2012-12-31"), policy_timestep = missing)
  ```
 
-> Exposures with `AnniversaryCalendar(Year(1),Year(1))` will tend to end sooner than the latter two because the former is by defnition split into two periods.
+## Leap Years
 
+When a policy is issued on a leap day (February 29th), it is preferable to have the next policy year start on the 28th. This is as opposed to having the segment begin on March 1st becuase when the leap year does come around again, we wouldn't want the segment to end on February 29th. 
 
+### Example
 
+Exposures are caulcated like this:
+
+```julia-repl
+julia> exposure(
+        py,
+        Date(2016, 2, 29),
+        Date(2025, 1, 2)
+        )
+9-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Int64}}:
+ (from = Date("2016-02-29"), to = Date("2017-02-27"), policy_timestep = 1)
+ (from = Date("2017-02-28"), to = Date("2018-02-27"), policy_timestep = 2)
+ (from = Date("2018-02-28"), to = Date("2019-02-27"), policy_timestep = 3)
+ (from = Date("2019-02-28"), to = Date("2020-02-28"), policy_timestep = 4)
+ (from = Date("2020-02-29"), to = Date("2021-02-27"), policy_timestep = 5)
+ (from = Date("2021-02-28"), to = Date("2022-02-27"), policy_timestep = 6)
+ (from = Date("2022-02-28"), to = Date("2023-02-27"), policy_timestep = 7)
+ (from = Date("2023-02-28"), to = Date("2024-02-28"), policy_timestep = 8)
+ (from = Date("2024-02-29"), to = Date("2025-01-02"), policy_timestep = 9)
+```
+And **not** like this:
+
+```julia-repl
+9-element Vector{@NamedTuple{from::Date, to::Date, policy_timestep::Int64}}:
+ (from = Date("2016-02-29"), to = Date("2017-02-28"), policy_timestep = 1)
+ (from = Date("2017-03-01"), to = Date("2018-02-28"), policy_timestep = 2)
+ (from = Date("2018-03-01"), to = Date("2019-02-28"), policy_timestep = 3)
+ (from = Date("2019-03-01"), to = Date("2020-02-28"), policy_timestep = 4)
+ (from = Date("2020-03-01"), to = Date("2021-02-29"), policy_timestep = 5)
+...
+```

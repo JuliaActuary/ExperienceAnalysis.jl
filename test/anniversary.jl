@@ -53,7 +53,7 @@ pm = ExperienceAnalysis.Anniversary(Month(1))
             study_end = Date(2021, 12, 10),
             right_partials = true,
             left_partials = false,
-        ) == [(from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2)]
+        ) == [(from = Date(2021, 1, 1), to = Date(2021, 12, 10), policy_timestep = 2)]
 
         # Month(1), with left partials
         @test exposure(

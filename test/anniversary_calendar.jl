@@ -32,8 +32,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
             left_partials = true,
         ) == [
             (from = Date(2020, 1, 10), to = Date(2020, 12, 31), policy_timestep = 1),
-            (from = Date(2021, 1, 1), to = Date(2021, 1, 1), policy_timestep = 1),
-            (from = Date(2021, 1, 2), to = Date(2021, 12, 31), policy_timestep = 2),
+            (from = Date(2021, 1, 1), to = Date(2021, 12, 10), policy_timestep = 1),
         ]
 
         @test exposure(
@@ -52,7 +51,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
         @test exposure(
             pycy,
             Date(2020, 1, 2),
-            Date(2022, 1, 2),
+            Date(2021, 1, 2),
             true;
             study_start = Date(2020, 1, 10),
             study_end = Date(2021, 12, 10),
@@ -88,26 +87,25 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
     end
     # with continued exposure, goes beyond study end
     @test exposure(
-              pycy,
-              Date(2020, 1, 2),
-              Date(2022, 1, 2),
-              true;
-              study_start = Date(2021, 1, 2),
-              study_end = Date(2021, 12, 10),
-              right_partials = true,
-              left_partials = true,
-          ) ==
-          exposure(
-              pycy,
-              Date(2020, 1, 2),
-              Date(2022, 1, 2),
-              true;
-              study_start = Date(2021, 1, 2),
-              study_end = Date(2021, 12, 10),
-              right_partials = true,
-              left_partials = false,
-          ) ==
-          [(from = Date(2021, 1, 2), to = Date(2021, 12, 31), policy_timestep = 2)]
+        pycy,
+        Date(2020, 1, 2),
+        Date(2022, 1, 2),
+        true;
+        study_start = Date(2021, 1, 2),
+        study_end = Date(2021, 12, 10),
+        right_partials = true,
+        left_partials = true,
+    ) == [(from = Date(2021, 1, 2), to = Date(2021, 12, 10), policy_timestep = 2)]
+    @test exposure(
+        pycy,
+        Date(2020, 1, 2),
+        Date(2022, 1, 2),
+        true;
+        study_start = Date(2021, 1, 2),
+        study_end = Date(2021, 12, 10),
+        right_partials = true,
+        left_partials = false,
+    ) == []
 
     @testset "study_start < from, left partials do not exist" begin
         @test exposure(
@@ -137,7 +135,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
         @test exposure(
                   pycy,
                   Date(2020, 1, 2),
-                  Date(2022, 1, 2),
+                  Date(2021, 1, 2),
                   true;
                   study_start = Date(1900, 1, 1),
                   study_end = Date(2021, 12, 10),
@@ -147,7 +145,7 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
               exposure(
                   pycy,
                   Date(2020, 1, 2),
-                  Date(2022, 1, 2),
+                  Date(2021, 1, 2),
                   true;
                   study_start = Date(1900, 1, 1),
                   study_end = Date(2021, 12, 10),
@@ -188,30 +186,33 @@ pmcm = ExperienceAnalysis.AnniversaryCalendar(Month(1), Month(1))
               ]
         # with continued exposure, goes beyond study end
         @test exposure(
-                  pycy,
-                  Date(2020, 1, 2),
-                  Date(2022, 1, 2),
-                  true;
-                  study_start = Date(2020, 1, 2),
-                  study_end = Date(2021, 12, 10),
-                  right_partials = true,
-                  left_partials = true,
-              ) ==
-              exposure(
-                  pycy,
-                  Date(2020, 1, 2),
-                  Date(2022, 1, 2),
-                  true;
-                  study_start = Date(2020, 1, 2),
-                  study_end = Date(2021, 12, 10),
-                  right_partials = true,
-                  left_partials = false,
-              ) ==
-              [
-                  (from = Date(2020, 1, 2), to = Date(2020, 12, 31), policy_timestep = 1),
-                  (from = Date(2021, 1, 1), to = Date(2021, 1, 1), policy_timestep = 1),
-                  (from = Date(2021, 1, 2), to = Date(2021, 12, 31), policy_timestep = 2),
-              ]
+            pycy,
+            Date(2020, 1, 2),
+            Date(2021, 1, 2),
+            true;
+            study_start = Date(2020, 1, 2),
+            study_end = Date(2021, 12, 10),
+            right_partials = true,
+            left_partials = true,
+        ) == [
+            (from = Date(2020, 1, 2), to = Date(2020, 12, 31), policy_timestep = 1),
+            (from = Date(2021, 1, 1), to = Date(2021, 1, 1), policy_timestep = 1),
+            (from = Date(2021, 1, 2), to = Date(2021, 12, 31), policy_timestep = 2),
+        ]
+        @test exposure(
+            pycy,
+            Date(2020, 1, 2),
+            Date(2021, 1, 2),
+            true;
+            study_start = Date(2020, 1, 2),
+            study_end = Date(2021, 12, 10),
+            right_partials = true,
+            left_partials = false,
+        ) == [
+            (from = Date(2020, 1, 2), to = Date(2020, 12, 31), policy_timestep = 1),
+            (from = Date(2021, 1, 1), to = Date(2021, 1, 1), policy_timestep = 1),
+            (from = Date(2021, 1, 2), to = Date(2021, 12, 31), policy_timestep = 2),
+        ]
     end
 
 end
@@ -485,6 +486,16 @@ end
 end
 
 @testset "AnniversaryCalendar, edge cases" begin
+
+    @test last(
+        exposure(
+            pycy,
+            Date(2014, 3, 26),
+            Date(2022, 5, 15),
+            true;
+            study_end = Date(2022, 3, 31),
+        ),
+    ).to == Date(2022, 3, 31)
     @testset "works when anniversary is on new year" begin
         @test exposure(
             pycy,

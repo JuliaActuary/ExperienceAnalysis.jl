@@ -102,13 +102,6 @@ function exposure(
         typemax(from), nothing
     else
         pp = from + p.pol_period - Day(1)
-
-        # is_leap_day = month(from) == 2 && day(from) == 29
-
-        # # if is_leap_day
-        # #     # pp += Day(1)
-        # # end
-
         pp, 1
     end
     next_cal_per = if isnothing(p.cal_period)
@@ -151,12 +144,11 @@ function exposure(
 
         # check if terminus needs adjusted because of the study or termination
         # when there is no continuation
-        if !continued_exposure && (min(study_end, to) < next_terminus)
+        if (!continued_exposure && (min(study_end, to) < next_terminus)) || (continued_exposure && to > study_end)
             next_terminus = min(study_end, to)
         end
 
 
-        # @show last(result), next_terminus, next_pol_per, next_cal_per
         push!(
             result,
             (from=result[end].to + Day(1), to=next_terminus, policy_timestep=policy_timestep)
@@ -174,7 +166,11 @@ function exposure(
             result[begin] = (
                 from=study_start,
                 to=result[begin].to,
-                policy_timestep=result[begin].policy_timestep
+                policy_timestep=if study_start > next_pol_per
+                    result[begin].policy_timestep + 1
+                else
+                    result[begin].policy_timestep
+                end
             )
         end
         if !left_partials

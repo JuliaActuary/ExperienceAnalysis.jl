@@ -14,7 +14,7 @@
     using StableRNGs
 
     rng = StableRNG(123)
-    q = 1 - (0.6)^(1 / (365.25 * 4)) #  a daily rate for a risk that occurs ~0.05/year on average over a leap cycle 
+    q = 1 - (0.6)^(1 / (365.25 * 4)) #  a daily rate for a risk that occurs ~0.1/year on average over a leap cycle 
 
     # simulate n policies and when they die using the above q
     # set the end date for the study four years in, covering a whole leap cycle

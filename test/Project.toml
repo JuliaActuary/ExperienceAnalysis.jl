@@ -1,0 +1,8 @@
+[deps]
+DataFramesMeta = "1313f7d8-7da2-5740-9ea0-a2ca25f37964"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DayCounts = "44e31299-2c53-5a9b-9141-82aa45d7972f"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

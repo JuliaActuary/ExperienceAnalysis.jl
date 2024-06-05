@@ -20,6 +20,19 @@ pm = ExperienceAnalysis.Anniversary(Month(1))
             (from = Date(2020, 1, 10), to = Date(2020, 12, 31), policy_timestep = 1),
             (from = Date(2021, 1, 1), to = Date(2021, 12, 10), policy_timestep = 2),
         ]
+
+        # exits before study start
+        @test isempty(
+            exposure(
+                py,
+                Date(2020, 1, 1),
+                Date(2020, 1, 5);
+                study_start = Date(2020, 1, 10),
+                study_end = Date(2021, 12, 10),
+                right_partials = true,
+                left_partials = true,
+            ),
+        )
         # Year(1), without left partials
         @test exposure(
             py,
@@ -40,7 +53,7 @@ pm = ExperienceAnalysis.Anniversary(Month(1))
             study_end = Date(2021, 12, 10),
             right_partials = true,
             left_partials = false,
-        ) == [(from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2)]
+        ) == [(from = Date(2021, 1, 1), to = Date(2021, 12, 10), policy_timestep = 2)]
 
         # Month(1), with left partials
         @test exposure(
@@ -255,7 +268,8 @@ end
                   study_end = Date(2023, 1, 2),
                   left_partials = true,
                   right_partials = false,
-              ) == [
+              ) ==
+              [
                   (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
                   (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
                   (from = Date(2022, 1, 1), to = Date(2022, 1, 1), policy_timestep = 3),
@@ -278,7 +292,8 @@ end
                   study_end = Date(2023, 1, 2),
                   left_partials = true,
                   right_partials = false,
-              ) == [
+              ) ==
+              [
                   (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
                   (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
                   (from = Date(2022, 1, 1), to = Date(2022, 12, 31), policy_timestep = 3),
@@ -366,27 +381,32 @@ end
         ]
 
         # Year(1), no right partials, with/without continued_exposure
+        # QUESTION: Should the first component of this keep the last exposure
+        # since it is shorter due to a termination, not because it was cut off by study end?
         @test exposure(
-                  py,
-                  Date(2020, 1, 1),
-                  Date(2022, 1, 1);
-                  study_end = Date(2022, 1, 2),
-                  left_partials = true,
-                  right_partials = false,
-              ) ==
-              exposure(
-                  py,
-                  Date(2020, 1, 1),
-                  Date(2022, 1, 1),
-                  true;
-                  study_end = Date(2022, 1, 2),
-                  left_partials = true,
-                  right_partials = false,
-              ) ==
-              [
-                  (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
-                  (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
-              ]
+            py,
+            Date(2020, 1, 1),
+            Date(2022, 1, 1);
+            study_end = Date(2022, 1, 2),
+            left_partials = true,
+            right_partials = false,
+        ) == [
+            (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
+            (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
+            (from = Date(2022, 1, 1), to = Date(2022, 1, 1), policy_timestep = 3),
+        ]
+        @test exposure(
+            py,
+            Date(2020, 1, 1),
+            Date(2022, 1, 1),
+            true;
+            study_end = Date(2022, 1, 2),
+            left_partials = true,
+            right_partials = false,
+        ) == [
+            (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
+            (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
+        ]
 
         # Month(1), right partials
         @test exposure(
@@ -419,28 +439,31 @@ end
         ]
         # Month(1), no right partials, with/without continued_exposure
         @test exposure(
-                  pm,
-                  Date(2020, 1, 1),
-                  Date(2020, 3, 1);
-                  study_start = Date(1900, 1, 1),
-                  study_end = Date(2020, 3, 30),
-                  left_partials = true,
-                  right_partials = false,
-              ) ==
-              exposure(
-                  pm,
-                  Date(2020, 1, 1),
-                  Date(2020, 3, 1),
-                  true;
-                  study_start = Date(1900, 1, 1),
-                  study_end = Date(2020, 3, 30),
-                  left_partials = true,
-                  right_partials = false,
-              ) ==
-              [
-                  (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
-                  (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
-              ]
+            pm,
+            Date(2020, 1, 1),
+            Date(2020, 3, 1);
+            study_start = Date(1900, 1, 1),
+            study_end = Date(2020, 3, 30),
+            left_partials = true,
+            right_partials = false,
+        ) == [
+            (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
+            (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
+            (from = Date(2020, 3, 1), to = Date(2020, 3, 1), policy_timestep = 3),
+        ]
+        @test exposure(
+            pm,
+            Date(2020, 1, 1),
+            Date(2020, 3, 1),
+            true;
+            study_start = Date(1900, 1, 1),
+            study_end = Date(2020, 3, 30),
+            left_partials = true,
+            right_partials = false,
+        ) == [
+            (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
+            (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
+        ]
     end
 
     @testset "study_end == to, right_partials are removed" begin
@@ -479,8 +502,12 @@ end
             study_end = Date(2022, 1, 1),
             left_partials = true,
             right_partials = false,
-        ) == 
-        exposure(
+        ) == [
+            (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
+            (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
+            (from = Date(2022, 1, 1), to = Date(2022, 1, 1), policy_timestep = 3),
+        ]
+        @test exposure(
             py,
             Date(2020, 1, 1),
             Date(2022, 1, 1),
@@ -488,8 +515,7 @@ end
             study_end = Date(2022, 1, 1),
             left_partials = true,
             right_partials = false,
-        ) == 
-        [
+        ) == [
             (from = Date(2020, 1, 1), to = Date(2020, 12, 31), policy_timestep = 1),
             (from = Date(2021, 1, 1), to = Date(2021, 12, 31), policy_timestep = 2),
         ]
@@ -525,28 +551,31 @@ end
         ]
         # Month(1), no right partials, with/without continued_exposure
         @test exposure(
-                  pm,
-                  Date(2020, 1, 1),
-                  Date(2020, 3, 1);
-                  study_start = Date(1900, 1, 1),
-                  study_end = Date(2020, 3, 1),
-                  left_partials = true,
-                  right_partials = false,
-              ) ==
-              exposure(
-                  pm,
-                  Date(2020, 1, 1),
-                  Date(2020, 3, 1),
-                  true;
-                  study_start = Date(1900, 1, 1),
-                  study_end = Date(2020, 3, 1),
-                  left_partials = true,
-                  right_partials = false,
-              ) ==
-              [
-                  (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
-                  (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
-              ]
+            pm,
+            Date(2020, 1, 1),
+            Date(2020, 3, 1);
+            study_start = Date(1900, 1, 1),
+            study_end = Date(2020, 3, 1),
+            left_partials = true,
+            right_partials = false,
+        ) == [
+            (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
+            (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
+            (from = Date(2020, 3, 1), to = Date(2020, 3, 1), policy_timestep = 3),
+        ]
+        @test exposure(
+            pm,
+            Date(2020, 1, 1),
+            Date(2020, 3, 1),
+            true;
+            study_start = Date(1900, 1, 1),
+            study_end = Date(2020, 3, 1),
+            left_partials = true,
+            right_partials = false,
+        ) == [
+            (from = Date(2020, 1, 1), to = Date(2020, 1, 31), policy_timestep = 1),
+            (from = Date(2020, 2, 1), to = Date(2020, 2, 29), policy_timestep = 2),
+        ]
     end
 
     @testset "study_end on day prior anniv, no right_partials exist" begin
@@ -687,5 +716,3 @@ end
         study_end = Date(2010, 5, 9),
     ) == []
 end
-
-

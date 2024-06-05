@@ -5,5 +5,7 @@ using Dates
 include("anniversary.jl")
 include("anniversary_calendar.jl")
 include("calendar.jl")
-include("utils.jl")
 include("broadcasts.jl")
+include("utils.jl")
+include("misc.jl")
+include("experience_machine.jl")

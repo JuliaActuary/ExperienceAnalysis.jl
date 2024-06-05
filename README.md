@@ -77,6 +77,14 @@ function exposure(
 
 ## p, Exposure Basis
 
+In summary, there's three options for calculating the basis:
+
+- `ExperienceAnalysis.Anniversary(period)` will give exposures periods based on the first date
+- `ExperienceAnalysis.Calendar(period)` will follow calendar periods (e.g. month or year)
+- `ExperienceAnalysis.AnniversaryCalendar(period,period)` will split into the smaller of the calendar or policy period.
+
+Where `period` is a [Period Type from the Dates standard library](https://docs.julialang.org/en/v1/stdlib/Dates/#Period-Types).
+
 ### Anniversary
 
 `ExperienceAnalysis.Anniversary(DatePeriod)` will give exposures periods based on the first date. Exposure intervals will fall on anniversaries, `start_date + t * dateperiod`.

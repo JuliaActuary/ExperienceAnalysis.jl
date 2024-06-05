@@ -1,5 +1,5 @@
 @testset "Generated Experience" begin
-    # generate samples over a fully leap cycle and 
+    # generate samples over a full leap cycle and 
     # ensure that we can recover a ~100% A/E using a given
     # assumption
 

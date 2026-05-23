@@ -2,8 +2,8 @@
 ![](https://github.com/JuliaActuary/LifeContingencies.jl/workflows/CI/badge.svg)
 [![Coverage](https://codecov.io/gh/JuliaActuary/ExperienceAnalysis.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaActuary/ExperienceAnalysis.jl)
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaActuary.github.io/ExperienceAnalysis.jl/stable)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaActuary.github.io/ExperienceAnalysis.jl/dev)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://docs.juliaactuary.org/ExperienceAnalysis/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://docs.juliaactuary.org/ExperienceAnalysis/dev/)
 
 
 Calculate exposures.

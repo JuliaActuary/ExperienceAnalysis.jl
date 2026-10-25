@@ -2,7 +2,7 @@ using Documenter, ExperienceAnalysis
 
 makedocs(;
     modules=[ExperienceAnalysis],
-    format=Documenter.HTML(),
+    format=Documenter.HTML(; canonical="https://docs.juliaactuary.org/ExperienceAnalysis/stable/"),
     pages=[
         "Overview" => "index.md",
         "API Reference" => "api.md",
